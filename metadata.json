@@ -1,0 +1,5 @@
+{
+  "name": "HKUST Dorm Advisor V2 demo",
+  "description": "LLM-Driven HKUST Dormitory Recommendation Chatbot helping students find their perfect hall.",
+  "requestFramePermissions": []
+}

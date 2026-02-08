@@ -1,0 +1,49 @@
+# Root .gitignore
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.production.local
+
+# Backend
+backend/__pycache__/
+backend/*.py[cod]
+backend/venv/
+backend/env/
+backend/.env
+backend/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+.vercel
+.railway
+*.pem
+
+# Old structure (if migrating)
+components/
+services/
+App.tsx
+index.tsx
+index.html
+vite.config.ts
+package.json
+tsconfig.json
+constants.ts
+types.ts
+node_modules/

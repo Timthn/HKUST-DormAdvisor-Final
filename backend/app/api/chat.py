@@ -1,0 +1,117 @@
+"""
+Chat API Endpoints
+Handles chat interactions with AI advisor
+"""
+from fastapi import APIRouter, Depends, HTTPException
+from app.models.schemas import ChatMessage, ChatResponse
+from app.middleware.auth import get_current_user_id
+from app.services.bailian_service import get_bailian_service
+from app.database.supabase_client import get_supabase
+from datetime import datetime
+
+router = APIRouter()
+
+
+@router.post("/", response_model=ChatResponse)
+async def send_chat_message(
+    message: ChatMessage,
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Send a chat message and get AI response
+    
+    Flow:
+    1. Verify user authentication (via Depends)
+    2. Fetch user profile from Supabase
+    3. Fetch recent chat history
+    4. Construct context-aware prompt
+    5. Call Bailian API
+    6. Store user message and AI response in database
+    7. Return AI response
+    """
+    bailian = get_bailian_service()
+    supabase = get_supabase()
+    
+    try:
+        # Step 1: Fetch user profile (for context)
+        profile_response = supabase.table('profiles').select('*').eq('id', user_id).single().execute()
+        profile = profile_response.data
+        
+        # Step 2: Fetch recent chat history (last 10 messages)
+        history_response = supabase.table('chat_logs').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(10).execute()
+        history = history_response.data
+        
+        # Step 3: Build context
+        identity = profile.get('identity', 'Student')
+        budget = profile.get('budget_range', 'Not specified')
+        preferences = profile.get('preferences', {})
+        
+        context_prompt = f"""
+[User Context]
+- Identity: {identity}
+- Budget: {budget}
+- Preferences: {preferences}
+
+[User Question]
+{message.message}
+
+Please provide a helpful response based on the user's context and question.
+"""
+        
+        # Step 4: Call Bailian API
+        # Use user_id as session_id to maintain conversation context
+        ai_response = await bailian.send_message(context_prompt, session_id=user_id)
+        
+        # Step 5: Store chat logs
+        timestamp = datetime.now().isoformat()
+        
+        # Store user message
+        supabase.table('chat_logs').insert({
+            'user_id': user_id,
+            'role': 'user',
+            'content': message.message,
+            'created_at': timestamp
+        }).execute()
+        
+        # Store AI response
+        supabase.table('chat_logs').insert({
+            'user_id': user_id,
+            'role': 'assistant',
+            'content': ai_response,
+            'created_at': timestamp
+        }).execute()
+        
+        # Step 6: Return response
+        return ChatResponse(
+            answer=ai_response,
+            rag_source=None,  # TODO: Implement RAG source tracking
+            timestamp=datetime.now()
+        )
+        
+    except Exception as e:
+        print(f"Chat error: {e}")
+        raise HTTPException(status_code=500, detail=f"Chat service error: {str(e)}")
+
+
+@router.get("/history")
+async def get_chat_history(
+    limit: int = 50,
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Get user's chat history
+    
+    Args:
+        limit: Maximum number of messages to return
+        user_id: Authenticated user ID
+        
+    Returns:
+        List of chat messages
+    """
+    supabase = get_supabase()
+    
+    try:
+        response = supabase.table('chat_logs').select('*').eq('user_id', user_id).order('created_at', desc=False).limit(limit).execute()
+        return {"messages": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch chat history: {str(e)}")
