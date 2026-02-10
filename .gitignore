@@ -34,3 +34,8 @@ npm-debug.log*
 .vercel
 .railway
 *.pem
+
+# Scripts & Tools (not part of main app)
+Crawler_Cloud.py
+/scripts/
+/tools/
