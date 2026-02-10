@@ -21,13 +21,13 @@ async def send_chat_message(
     Send a chat message and get AI response
     
     Flow:
-    1. Verify user authentication (via Depends)
+    1. Verify user authentication (via Depends)# ########## This may need to changed to supabase auth
     2. Fetch user profile from Supabase
     3. Fetch recent chat history
-    4. Construct context-aware prompt
-    5. Call Bailian API
-    6. Store user message and AI response in database
-    7. Return AI response
+    4. Construct context-aware prompt # ########## This may need to changed to supabase auth
+    5. Call Bailian API # ########## This may need to changed to supabase auth
+    6. Store user message and AI response in database # ########## This may need to changed to supabase auth
+    7. Return AI response # ########## This may need to changed to supabase auth
     """
     bailian = get_bailian_service()
     supabase = get_supabase()
