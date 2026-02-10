@@ -35,15 +35,15 @@ npm-debug.log*
 .railway
 *.pem
 
-# Old structure (if migrating)
-components/
-services/
-App.tsx
-index.tsx
-index.html
-vite.config.ts
-package.json
-tsconfig.json
-constants.ts
-types.ts
-node_modules/
+# Old Vite structure (root level only)
+/App.tsx
+/index.tsx
+/index.html
+/vite.config.ts
+/package.json
+/tsconfig.json
+/constants.ts
+/types.ts
+/node_modules/
+/components/
+/services/
