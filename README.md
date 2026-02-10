@@ -359,6 +359,22 @@ npm install
 # yarn install
 ```
 
+**📦 npm install 工作原理 | How npm install Works:**
+
+`npm install` 会自动读取 `package.json` 文件，并安装所有列出的依赖包及其子依赖。
+
+**`npm install` automatically reads `package.json` and installs all listed dependencies and their sub-dependencies.**
+
+```
+package.json (您定义的直接依赖)
+     ↓
+npm install (读取并解析依赖树)
+     ↓
+package-lock.json (锁定所有依赖的确切版本)
+     ↓
+node_modules/ (下载并安装数百个包)
+```
+
 **将安装以下包 | Will Install:**
 - Next.js 14.1
 - React 18.2
@@ -366,6 +382,11 @@ npm install
 - Tailwind CSS 3.4
 - Supabase 客户端库
 - Axios, Lucide React 等
+
+**📝 说明 | Note:**
+- **`package.json`**: 定义项目直接需要的 7 个依赖
+- **`package-lock.json`**: 自动生成，记录所有依赖（含间接依赖）的完整版本信息
+- **`node_modules/`**: 实际安装的所有包（数百个文件夹）
 
 **安装时间 | Installation Time:** 约 2-5 分钟（取决于网速）
 
@@ -684,26 +705,7 @@ npm run build
 # 确保从示例文件复制
 cp .env.example .env  # Mac/Linux
 copy .env.example .env  # Windows
-```
 
-### 获取帮助 | Getting Help
-
-1. **查看文档 | Check Docs**: 见 [docs/](docs/) 目录
-2. **查看日志 | Review Logs**: 检查终端输出的错误信息
-3. **搜索问题 | Search Issues**: GitHub Issues 标签页
-4. **联系团队 | Ask Team**: 联系项目维护者
-
----
-
-## 🤝 贡献指南 | Contributing
-
-我们欢迎贡献！请遵循以下步骤：
-
-### 贡献流程 | Contribution Workflow
-
-1. **Fork 仓库 | Fork Repository**
-   ```bash
-   # 在 GitHub 上点击 "Fork"
    ```
 
 2. **克隆你的 Fork | Clone Your Fork**
