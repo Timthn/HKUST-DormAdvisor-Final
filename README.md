@@ -1,10 +1,11 @@
-# HKUST Dorm Advisor
+# HKUST Dorm Advisor | 香港科大宿舍推荐系统
 
 <div align="center">
 
-**🏠 AI-Powered HKUST Dormitory Recommendation System**
+**🏠 AI驱动的香港科技大学宿舍推荐系统**  
+**AI-Powered HKUST Dormitory Recommendation System**
 
-*Built with Alibaba Cloud Bailian + Next.js + FastAPI + Supabase*
+*基于 Alibaba Cloud Bailian + Next.js + FastAPI + Supabase 构建*
 
 [![Next.js](https://img.shields.io/badge/Next.js-14+-black)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688)](https://fastapi.tiangolo.com/)
@@ -15,230 +16,232 @@
 
 ---
 
-## 📖 Table of Contents
+## 📖 目录 | Table of Contents
 
-- [Project Overview](#-project-overview)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Developer Onboarding Guide](#-developer-onboarding-guide)
-  - [Prerequisites](#prerequisites)
-  - [Initial Setup](#initial-setup)
-  - [Backend Setup](#backend-setup)
-  - [Frontend Setup](#frontend-setup)
-  - [Running the Application](#running-the-application)
-  - [Verification](#verification)
-- [Development Mode](#-development-mode)
-- [Documentation](#-documentation)
-- [System Architecture](#-system-architecture)
-- [Features](#-features)
-- [Troubleshooting](#-troubleshooting)
-- [Contributing](#-contributing)
-
----
-
-## 🎯 Project Overview
-
-HKUST Dorm Advisor is an intelligent dormitory recommendation system that leverages AI technology to provide personalized accommodation suggestions for HKUST students. The project adopts a modern frontend-backend separation architecture, supporting cross-platform development.
-
-**Key Features:**
-- 🤖 AI-powered chat interface for dormitory queries
-- 📊 Personalized recommendations based on user preferences
-- 🔐 Secure authentication with Supabase
-- 📱 Responsive design for all devices
-- 🚀 Fast and scalable architecture
+- [项目概述 | Project Overview](#-项目概述--project-overview)
+- [技术栈 | Tech Stack](#-技术栈--tech-stack)
+- [项目结构 | Project Structure](#-项目结构--project-structure)
+- [开发者入门指南 | Developer Onboarding Guide](#-开发者入门指南--developer-onboarding-guide)
+  - [环境要求 | Prerequisites](#环境要求--prerequisites)
+  - [初始设置 | Initial Setup](#初始设置--initial-setup)
+  - [后端配置 | Backend Setup](#后端配置--backend-setup)
+  - [前端配置 | Frontend Setup](#前端配置--frontend-setup)
+  - [运行应用 | Running the Application](#运行应用--running-the-application)
+  - [验证测试 | Verification](#验证测试--verification)
+- [开发模式说明 | Development Mode](#-开发模式说明--development-mode)
+- [项目文档 | Documentation](#-项目文档--documentation)
+- [系统架构 | System Architecture](#-系统架构--system-architecture)
+- [功能清单 | Features](#-功能清单--features)
+- [常见问题 | Troubleshooting](#-常见问题--troubleshooting)
+- [贡献指南 | Contributing](#-贡献指南--contributing)
 
 ---
 
-## 🛠 Tech Stack
+## 🎯 项目概述 | Project Overview
 
-### Frontend
-- **Framework**: Next.js 14+ with App Router
-- **Language**: TypeScript 5.8
-- **UI Library**: React 18.2
-- **Styling**: Tailwind CSS 3.4
-- **Icons**: Lucide React
-- **HTTP Client**: Axios 1.6
-- **Authentication**: Supabase Auth
-- **Deployment**: Vercel
+HKUST Dorm Advisor 是一个智能宿舍推荐系统，使用 AI 技术为香港科技大学学生提供个性化的住宿建议。项目采用现代化的前后端分离架构，支持跨平台开发。
 
-### Backend
-- **Framework**: FastAPI 0.109
-- **Language**: Python 3.9+
-- **Server**: Uvicorn with auto-reload
-- **AI Service**: Alibaba Cloud Bailian (Model Studio)
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: JWT with python-jose
-- **Async HTTP**: httpx
-- **Deployment**: Render / Railway
+An intelligent dormitory recommendation system that leverages AI technology to provide personalized accommodation suggestions for HKUST students. Built with modern frontend-backend separation architecture for cross-platform development.
+
+**核心功能 | Key Features:**
+- 🤖 AI 智能对话，解答宿舍相关问题
+- 📊 基于用户偏好的个性化推荐
+- 🔐 Supabase 安全认证
+- 📱 响应式设计，支持所有设备
+- 🚀 快速、可扩展的架构
 
 ---
 
-## 📁 Project Structure
+## 🛠 技术栈 | Tech Stack
+
+### 前端 | Frontend
+- **框架 Framework**: Next.js 14+ (App Router)
+- **语言 Language**: TypeScript 5.8
+- **UI 库 Library**: React 18.2
+- **样式 Styling**: Tailwind CSS 3.4
+- **图标 Icons**: Lucide React
+- **HTTP 客户端 Client**: Axios 1.6
+- **认证 Auth**: Supabase Auth
+- **部署 Deployment**: Vercel
+
+### 后端 | Backend
+- **框架 Framework**: FastAPI 0.109
+- **语言 Language**: Python 3.9+
+- **服务器 Server**: Uvicorn (auto-reload)
+- **AI 服务 AI Service**: 阿里云百炼 (Alibaba Cloud Bailian)
+- **数据库 Database**: Supabase (PostgreSQL)
+- **认证 Auth**: JWT (python-jose)
+- **异步 HTTP Async HTTP**: httpx
+- **部署 Deployment**: Render / Railway
+
+---
+
+## 📁 项目结构 | Project Structure
 
 ```
 hkust-dorm-advisor_202602/
-├── 📁 backend/                     # FastAPI Backend
+├── 📁 backend/                     # FastAPI 后端
 │   ├── app/
-│   │   ├── api/                    # API Routes
-│   │   │   ├── chat.py             # Chat endpoints
-│   │   │   ├── recommend.py        # Recommendation endpoints
-│   │   │   └── profile.py          # User profile endpoints
-│   │   ├── services/               # Business Logic
-│   │   │   ├── bailian_service.py  # Bailian AI Service
+│   │   ├── api/                    # API 路由
+│   │   │   ├── chat.py             # 聊天接口
+│   │   │   ├── recommend.py        # 推荐接口
+│   │   │   └── profile.py          # 用户资料接口
+│   │   ├── services/               # 业务逻辑
+│   │   │   ├── bailian_service.py  # 百炼 AI 服务
 │   │   │   ├── recommendation_service.py
-│   │   │   └── rag_service.py      # RAG retrieval (planned)
-│   │   ├── models/                 # Data Models
-│   │   │   └── schemas.py          # Pydantic schemas
-│   │   ├── database/               # Database Layer
-│   │   │   └── supabase_client.py  # Supabase client
-│   │   ├── middleware/             # Middleware
-│   │   │   └── auth.py             # JWT authentication
-│   │   ├── utils/                  # Utilities
-│   │   │   └── constants.py        # System constants
-│   │   ├── data/                   # Static Data
+│   │   │   └── rag_service.py      # RAG 检索（规划中）
+│   │   ├── models/                 # 数据模型
+│   │   │   └── schemas.py          # Pydantic 模型
+│   │   ├── database/               # 数据库层
+│   │   │   └── supabase_client.py  # Supabase 客户端
+│   │   ├── middleware/             # 中间件
+│   │   │   └── auth.py             # JWT 认证
+│   │   ├── utils/                  # 工具函数
+│   │   │   └── constants.py        # 系统常量
+│   │   ├── data/                   # 静态数据
 │   │   │   └── hall_facilities.json
-│   │   └── main.py                 # Application entry
-│   ├── requirements.txt            # Python dependencies
-│   ├── .env.example                # Environment template
+│   │   └── main.py                 # 应用入口
+│   ├── requirements.txt            # Python 依赖
+│   ├── .env.example                # 环境变量模板
 │   └── README.md
 │
-├── 📁 frontend/                    # Next.js Frontend
+├── 📁 frontend/                    # Next.js 前端
 │   ├── app/                        # Next.js App Router
-│   │   ├── page.tsx                # Landing page
-│   │   ├── layout.tsx              # Root layout
-│   │   ├── globals.css             # Global styles
-│   │   ├── login/page.tsx          # Login page
-│   │   ├── setup/page.tsx          # User preference setup
-│   │   └── chat/page.tsx           # Main chat interface
-│   ├── components/                 # React Components
-│   │   ├── ChatPanel.tsx           # Chat message panel
-│   │   ├── Sidebar.tsx             # Navigation sidebar
-│   │   ├── RecommendationPanel.tsx # AI analysis panel
-│   │   ├── SetupForm.tsx           # User preference form
-│   │   ├── FacilitiesModal.tsx     # Facility details modal
-│   │   └── LandingPage.tsx         # Welcome page
-│   ├── lib/                        # Utility Libraries
-│   │   ├── supabase.ts             # Supabase client
-│   │   ├── api.ts                  # API wrapper
-│   │   └── constants.ts            # Frontend constants
-│   ├── types/                      # TypeScript Types
+│   │   ├── page.tsx                # 首页
+│   │   ├── layout.tsx              # 根布局
+│   │   ├── globals.css             # 全局样式
+│   │   ├── login/page.tsx          # 登录页
+│   │   ├── setup/page.tsx          # 偏好设置页
+│   │   └── chat/page.tsx           # 聊天主界面
+│   ├── components/                 # React 组件
+│   │   ├── ChatPanel.tsx           # 聊天消息面板
+│   │   ├── Sidebar.tsx             # 侧边导航栏
+│   │   ├── RecommendationPanel.tsx # AI 分析面板
+│   │   ├── SetupForm.tsx           # 用户偏好表单
+│   │   ├── FacilitiesModal.tsx     # 设施详情弹窗
+│   │   └── LandingPage.tsx         # 欢迎页
+│   ├── lib/                        # 工具库
+│   │   ├── supabase.ts             # Supabase 客户端
+│   │   ├── api.ts                  # API 封装
+│   │   └── constants.ts            # 前端常量
+│   ├── types/                      # TypeScript 类型
 │   │   └── index.ts
-│   ├── package.json                # Dependencies
-│   ├── next.config.js              # Next.js config
-│   ├── tailwind.config.js          # Tailwind config
-│   ├── tsconfig.json               # TypeScript config
-│   ├── .env.local.example          # Environment template
+│   ├── package.json                # 依赖配置
+│   ├── next.config.js              # Next.js 配置
+│   ├── tailwind.config.js          # Tailwind 配置
+│   ├── tsconfig.json               # TypeScript 配置
+│   ├── .env.local.example          # 环境变量模板
 │   └── README.md
 │
-├── 📁 docs/                        # Documentation
-│   ├── API.md                      # API documentation
-│   ├── DATABASE.md                 # Database schema
-│   ├── DEPLOYMENT.md               # Deployment guide
-│   └── QUICKSTART.md               # Quick reference
+├── 📁 docs/                        # 项目文档
+│   ├── API.md                      # API 接口文档
+│   ├── DATABASE.md                 # 数据库设计
+│   ├── DEPLOYMENT.md               # 部署指南
+│   └── QUICKSTART.md               # 快速参考
 │
-├── README.md                       # This file
-├── TODO.md                         # Development roadmap
-├── LOCAL_SETUP.md                  # Detailed setup guide
-├── TESTING.md                      # Testing guide
-└── .gitignore                      # Git ignore rules
+├── README.md                       # 项目总览（本文件）
+├── TODO.md                         # 开发任务清单
+├── LOCAL_SETUP.md                  # 本地配置详细指南
+├── TESTING.md                      # 测试指南
+└── .gitignore                      # Git 忽略规则
 ```
 
 ---
 
-## 🚀 Developer Onboarding Guide
+## 🚀 开发者入门指南 | Developer Onboarding Guide
 
-### Prerequisites
+### 环境要求 | Prerequisites
 
-Before you begin, ensure you have the following installed:
+在开始之前，请确保已安装以下工具：
 
-| Tool | Required Version | Check Command | Download Link |
-|------|-----------------|---------------|---------------|
+| 工具 Tool | 要求版本 Required | 检查命令 Check | 下载链接 Download |
+|----------|------------------|---------------|------------------|
 | **Node.js** | 18.0.0+ | `node --version` | [nodejs.org](https://nodejs.org/) |
-| **npm** | 9.0.0+ | `npm --version` | Comes with Node.js |
+| **npm** | 9.0.0+ | `npm --version` | Node.js 自带 |
 | **Python** | 3.9.0+ | `python --version` | [python.org](https://www.python.org/) |
-| **pip** | Latest | `pip --version` | Comes with Python |
-| **Git** | Latest | `git --version` | [git-scm.com](https://git-scm.com/) |
+| **pip** | 最新 Latest | `pip --version` | Python 自带 |
+| **Git** | 最新 Latest | `git --version` | [git-scm.com](https://git-scm.com/) |
 
-**Required Accounts & Keys:**
-- ✅ **Alibaba Cloud Bailian** API Key & App ID (Required for AI features)
-- ⚠️ **Supabase** account (Optional - only for production authentication)
+**必需账号与密钥 | Required Accounts & Keys:**
+- ✅ **阿里云百炼** API Key 和 App ID（必需，用于 AI 功能）
+- ⚠️ **Supabase** 账号（可选，仅生产环境需要）
 
 ---
 
-### Initial Setup
+### 初始设置 | Initial Setup
 
-#### 1. Clone the Repository
+#### 1. 克隆仓库 | Clone Repository
 
 ```bash
-# Clone via HTTPS
+# 通过 HTTPS 克隆
 git clone https://github.com/Timthn/HKUST_DormAdvisor_v20260202.git
 
-# Or via SSH (if configured)
+# 或通过 SSH 克隆（如果已配置）
 git clone git@github-timthn:Timthn/HKUST_DormAdvisor_v20260202.git
 
-# Navigate to project directory
+# 进入项目目录
 cd HKUST_DormAdvisor_v20260202
 ```
 
-#### 2. Verify Project Structure
+#### 2. 验证项目结构 | Verify Structure
 
 ```bash
-# List all directories
+# 列出所有目录
 ls -la
 
-# You should see: backend/, frontend/, docs/, README.md, etc.
+# 应该看到: backend/, frontend/, docs/, README.md 等
 ```
 
 ---
 
-### Backend Setup
+### 后端配置 | Backend Setup
 
-#### Step 1: Navigate to Backend Directory
+#### 步骤 1: 进入后端目录 | Navigate to Backend
 
 ```bash
 cd backend
 ```
 
-#### Step 2: Create Python Virtual Environment
+#### 步骤 2: 创建 Python 虚拟环境 | Create Virtual Environment
 
-**On Windows (PowerShell):**
+**Windows (PowerShell):**
 ```powershell
-# Create virtual environment
+# 创建虚拟环境
 python -m venv venv
 
-# Activate virtual environment
+# 激活虚拟环境
 .\venv\Scripts\Activate.ps1
 
-# If you get execution policy error, run:
+# 如果遇到执行策略错误，运行：
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-**On Mac/Linux (Bash/Zsh):**
+**Mac/Linux (Bash/Zsh):**
 ```bash
-# Create virtual environment
+# 创建虚拟环境
 python3 -m venv venv
 
-# Activate virtual environment
+# 激活虚拟环境
 source venv/bin/activate
 ```
 
-**Verify Activation:**
-Your terminal prompt should show `(venv)` at the beginning.
+**验证激活 | Verify:**
+终端提示符前应显示 `(venv)`
 
-#### Step 3: Install Python Dependencies
+#### 步骤 3: 安装 Python 依赖 | Install Dependencies
 
 ```bash
-# Upgrade pip first
+# 升级 pip
 pip install --upgrade pip
 
-# Install all dependencies
+# 安装所有依赖
 pip install -r requirements.txt
 
-# Verify installation
+# 验证安装
 pip list
 ```
 
-**Expected packages:**
+**应包含的主要包 | Expected Packages:**
 - fastapi==0.109.0
 - uvicorn==0.27.0
 - python-dotenv==1.0.0
@@ -248,47 +251,51 @@ pip list
 - python-jose==3.3.0
 - passlib==1.7.4
 
-#### Step 4: Configure Environment Variables
+#### 步骤 4: 配置环境变量 | Configure Environment
 
 ```bash
-# Copy example environment file
+# 复制环境变量模板
 cp .env.example .env
 
 # Windows (PowerShell):
 # copy .env.example .env
 ```
 
-**Edit `backend/.env` with your actual values:**
+**编辑 `backend/.env` 文件，填入实际值：**
 
 ```env
 # ========================================
+# 阿里云百炼配置
 # Alibaba Cloud Bailian Configuration
 # ========================================
-# Get your API key from: https://bailian.console.aliyun.com/
-BAILIAN_API_KEY=sk-your-actual-api-key-here
-BAILIAN_APP_ID=your-actual-app-id-here
+# 从以下网址获取: https://bailian.console.aliyun.com/
+BAILIAN_API_KEY=sk-你的实际API密钥
+BAILIAN_APP_ID=你的实际应用ID
 
 # ========================================
-# Development Mode
+# 开发模式 | Development Mode
 # ========================================
-# true = Skip authentication (for local testing)
-# false = Require full authentication (production)
+# true = 跳过认证（本地测试用）
+# false = 需要完整认证（生产环境）
 DEV_MODE=true
 
 # ========================================
-# Supabase Configuration (Optional in dev mode)
+# Supabase 配置（开发模式下可选）
+# Supabase Configuration (Optional in dev)
 # ========================================
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_KEY=your-service-role-key
 
 # ========================================
-# JWT Configuration (Optional in dev mode)
+# JWT 配置（开发模式下可选）
+# JWT Configuration (Optional in dev)
 # ========================================
 JWT_SECRET=your-random-secret-key-min-32-chars
 JWT_ALGORITHM=HS256
 
 # ========================================
+# CORS 和服务器配置
 # CORS & Server Configuration
 # ========================================
 FRONTEND_URL=http://localhost:3000
@@ -296,19 +303,19 @@ HOST=0.0.0.0
 PORT=8000
 ```
 
-**⚠️ Important Notes:**
-- `BAILIAN_API_KEY` and `BAILIAN_APP_ID` are **REQUIRED**
-- When `DEV_MODE=true`, Supabase and JWT configurations are optional
-- Never commit your `.env` file to Git (already in `.gitignore`)
+**⚠️ 重要提示 | Important:**
+- `BAILIAN_API_KEY` 和 `BAILIAN_APP_ID` 是**必需**的
+- 开发模式 (`DEV_MODE=true`) 下，Supabase 和 JWT 配置可选
+- 切勿将 `.env` 文件提交到 Git（已在 `.gitignore` 中）
 
-#### Step 5: Test Backend
+#### 步骤 5: 启动后端 | Start Backend
 
 ```bash
-# Start the backend server
+# 启动后端服务器
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Expected Output:**
+**预期输出 | Expected Output:**
 ```
 INFO:     Will watch for changes in these directories: ['C:\\...\\backend']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
@@ -318,99 +325,102 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ```
 
-**Verify Backend is Running:**
-- API Docs: http://localhost:8000/api/docs (Swagger UI)
-- Alternative Docs: http://localhost:8000/api/redoc (ReDoc)
-- Health Check: http://localhost:8000/ (should return a JSON response)
+**验证后端运行 | Verify Backend:**
+- API 文档 Docs: http://localhost:8000/api/docs (Swagger UI)
+- 备用文档 Alternative: http://localhost:8000/api/redoc (ReDoc)
+- 健康检查 Health: http://localhost:8000/ (应返回 JSON)
 
-**Keep this terminal open** - the backend must run continuously.
+**保持此终端窗口运行 | Keep This Terminal Running**
 
 ---
 
-### Frontend Setup
+### 前端配置 | Frontend Setup
 
-#### Step 1: Open a New Terminal
+#### 步骤 1: 打开新终端 | Open New Terminal
 
-**Important:** Keep the backend terminal running. Open a **NEW** terminal window/tab.
+**重要 | Important:** 保持后端终端运行，打开一个**新的**终端窗口/标签页。
 
-#### Step 2: Navigate to Frontend Directory
+#### 步骤 2: 进入前端目录 | Navigate to Frontend
 
 ```bash
 cd frontend
 
-# Or from project root:
+# 或从项目根目录：
 # cd ../frontend
 ```
 
-#### Step 3: Install Node.js Dependencies
+#### 步骤 3: 安装 Node.js 依赖 | Install Dependencies
 
 ```bash
-# Install all dependencies
+# 安装所有依赖
 npm install
 
-# Or use yarn if you prefer:
+# 或使用 yarn:
 # yarn install
 ```
 
-**This will install:**
+**将安装以下包 | Will Install:**
 - Next.js 14.1
 - React 18.2
 - TypeScript 5.8
 - Tailwind CSS 3.4
-- Supabase client libraries
-- Axios, Lucide React, etc.
+- Supabase 客户端库
+- Axios, Lucide React 等
 
-**Installation time:** ~2-5 minutes (depending on your internet speed)
+**安装时间 | Installation Time:** 约 2-5 分钟（取决于网速）
 
-#### Step 4: Configure Environment Variables
+#### 步骤 4: 配置环境变量 | Configure Environment
 
 ```bash
-# Copy example environment file
+# 复制环境变量模板
 cp .env.local.example .env.local
 
 # Windows (PowerShell):
 # copy .env.local.example .env.local
 ```
 
-**Edit `frontend/.env.local`:**
+**编辑 `frontend/.env.local` 文件：**
 
 ```env
 # ========================================
-# Development Mode
+# 开发模式 | Development Mode
 # ========================================
-# true = Skip authentication, access chat directly
-# false = Require login via Supabase
+# true = 跳过认证，直接访问聊天界面
+# false = 需要通过 Supabase 登录
 NEXT_PUBLIC_DEV_MODE=true
 
 # ========================================
-# Supabase Configuration (Optional in dev mode)
+# Supabase 配置（开发模式下可选）
+# Supabase Configuration (Optional in dev)
 # ========================================
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 # ========================================
+# 后端 API 地址
 # Backend API URL
 # ========================================
 NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # ========================================
+# 可选：Analytics 等
 # Optional: Analytics, etc.
 # ========================================
 # NEXT_PUBLIC_GA_ID=your-google-analytics-id
 ```
 
-**⚠️ Important Notes:**
-- `NEXT_PUBLIC_API_URL` must match your backend URL
-- `NEXT_PUBLIC_DEV_MODE=true` allows testing without login
-- All `NEXT_PUBLIC_*` variables are exposed to the browser
+**⚠️ 重要提示 | Important:**
+- `NEXT_PUBLIC_API_URL` 必须与后端 URL 匹配
+- `NEXT_PUBLIC_DEV_MODE=true` 允许无需登录测试
+- 所有 `NEXT_PUBLIC_*` 变量会暴露到浏览器
 
-#### Step 5: Start Frontend Development Server
+#### 步骤 5: 启动前端开发服务器 | Start Development Server
 
 ```bash
 npm run dev
 ```
 
-**Expected Output:**
+**预期输出 | Expected Output:**
 ```
 > hkust-dorm-advisor-frontend@2.0.0 dev
 > next dev
@@ -422,20 +432,20 @@ npm run dev
  ✓ Ready in 3.2s
 ```
 
-**Verify Frontend is Running:**
-- Homepage: http://localhost:3000
-- Chat Interface: http://localhost:3000/chat (dev mode allows direct access)
-- Setup Page: http://localhost:3000/setup
+**验证前端运行 | Verify Frontend:**
+- 首页 Homepage: http://localhost:3000
+- 聊天界面 Chat: http://localhost:3000/chat（开发模式可直接访问）
+- 设置页 Setup: http://localhost:3000/setup
 
 ---
 
-### Running the Application
+### 运行应用 | Running the Application
 
-#### Summary: Starting Both Services
+#### 总结：启动两个服务 | Summary: Start Both Services
 
-You need **TWO TERMINAL WINDOWS** running simultaneously:
+您需要**两个终端窗口**同时运行：
 
-**Terminal 1 - Backend:**
+**终端 1 - 后端 | Terminal 1 - Backend:**
 ```bash
 cd backend
 .\venv\Scripts\Activate.ps1  # Windows
@@ -443,85 +453,86 @@ cd backend
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Terminal 2 - Frontend:**
+**终端 2 - 前端 | Terminal 2 - Frontend:**
 ```bash
 cd frontend
 npm run dev
 ```
 
-#### Quick Test
+#### 快速测试 | Quick Test
 
-1. **Open your browser:** http://localhost:3000
-2. **Navigate to Chat:** http://localhost:3000/chat
-3. **Type a test message:**
+1. **打开浏览器 | Open Browser:** http://localhost:3000
+2. **进入聊天页 | Go to Chat:** http://localhost:3000/chat
+3. **发送测试消息 | Type Test Message:**
    - "介绍一下 Hall I"
    - "Which dorm has air conditioning?"
    - "I want a quiet dorm with a sea view"
+   - "我想找有空调的安静宿舍"
 
-4. **Expected Response:**
-   - The AI should respond with dormitory information
-   - Response time: 2-5 seconds
+4. **预期响应 | Expected Response:**
+   - AI 应该返回宿舍相关信息
+   - 响应时间：2-5 秒
 
 ---
 
-### Verification
+### 验证测试 | Verification
 
-#### Backend Health Check
+#### 后端健康检查 | Backend Health Check
 
 ```bash
-# Test health endpoint
+# 测试健康端点
 curl http://localhost:8000/
 
-# Expected response:
+# 预期响应:
 # {"message": "HKUST Dorm Advisor Backend API"}
 ```
 
-#### Frontend Build Test
+#### 前端构建测试 | Frontend Build Test
 
 ```bash
 cd frontend
 npm run build
 
-# Should complete without errors
-# Creates .next/ directory with production build
+# 应无错误完成
+# 会在 .next/ 目录生成生产构建
 ```
 
-#### API Documentation Check
+#### API 文档检查 | API Documentation Check
 
-Visit http://localhost:8000/api/docs to ensure all endpoints are loaded:
+访问 http://localhost:8000/api/docs 确保所有端点已加载：
 
-**Expected Endpoints:**
-- `POST /api/chat/send` - Send chat message
-- `POST /api/recommend/generate` - Generate recommendations
-- `GET /api/profile/{user_id}` - Get user profile
-- `PUT /api/profile/{user_id}` - Update user profile
+**预期端点 | Expected Endpoints:**
+- `POST /api/chat/send` - 发送聊天消息
+- `POST /api/recommend/generate` - 生成推荐
+- `GET /api/profile/{user_id}` - 获取用户资料
+- `PUT /api/profile/{user_id}` - 更新用户资料
 
 ---
 
-## 💡 Development Mode
+## 💡 开发模式说明 | Development Mode
 
-### What is Development Mode?
+### 什么是开发模式？ | What is Development Mode?
 
-Development mode (`DEV_MODE=true`) **bypasses authentication** to let you focus on testing core features without setting up Supabase.
+开发模式 (`DEV_MODE=true`) **跳过身份认证**，让您专注于测试核心功能，无需配置 Supabase。
 
-**Features in Dev Mode:**
-- ✅ No login required
-- ✅ Direct access to `/chat` interface
-- ✅ Uses test user ID (`test-user-123`)
-- ✅ AI chat works immediately
-- ✅ Simplified onboarding
+**开发模式特性 | Features:**
+- ✅ 无需登录 | No login required
+- ✅ 直接访问 `/chat` 界面 | Direct access to chat
+- ✅ 使用测试用户 ID (`test-user-123`)
+- ✅ AI 聊天立即可用 | AI chat works immediately
+- ✅ 简化的入门流程 | Simplified onboarding
 
-**Limitations:**
-- ❌ No user persistence (refresh loses data)
-- ❌ No multi-user support
-- ❌ No chat history saved to database
+**限制 | Limitations:**
+- ❌ 无用户持久化（刷新会丢失数据）| No user persistence
+- ❌ 不支持多用户 | No multi-user support
+- ❌ 聊天历史不保存到数据库 | Chat history not saved
 
-### Switching to Production Mode
+### 切换到生产模式 | Switch to Production Mode
 
-When ready for production:
+准备好生产环境时：
 
-1. **Set up Supabase** (see [LOCAL_SETUP.md](LOCAL_SETUP.md))
-2. **Update environment variables:**
+1. **配置 Supabase**（见 [LOCAL_SETUP.md](LOCAL_SETUP.md)）
+2. **更新环境变量 | Update Environment:**
    ```env
    # backend/.env
    DEV_MODE=false
@@ -529,31 +540,31 @@ When ready for production:
    # frontend/.env.local
    NEXT_PUBLIC_DEV_MODE=false
    ```
-3. **Restart both servers**
+3. **重启两个服务器 | Restart Both Servers**
 
 ---
 
-## 📚 Documentation
+## 📚 项目文档 | Documentation
 
-| Document | Description |
-|----------|-------------|
-| [LOCAL_SETUP.md](LOCAL_SETUP.md) | Detailed local development guide |
-| [TESTING.md](TESTING.md) | Testing procedures and test cases |
-| [TODO.md](TODO.md) | Development roadmap and task list |
-| [docs/API.md](docs/API.md) | Complete API reference |
-| [docs/DATABASE.md](docs/DATABASE.md) | Database schema and setup |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment guide |
-| [docs/QUICKSTART.md](docs/QUICKSTART.md) | Quick reference for common tasks |
+| 文档 Document | 描述 Description |
+|--------------|-----------------|
+| [LOCAL_SETUP.md](LOCAL_SETUP.md) | 详细的本地开发配置指南 |
+| [TESTING.md](TESTING.md) | 测试流程和测试用例 |
+| [TODO.md](TODO.md) | 开发路线图和任务清单 |
+| [docs/API.md](docs/API.md) | 完整 API 接口文档 |
+| [docs/DATABASE.md](docs/DATABASE.md) | 数据库架构和设置 |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 生产环境部署指南 |
+| [docs/QUICKSTART.md](docs/QUICKSTART.md) | 常用操作快速参考 |
 
 ---
 
-## 🏗 System Architecture
+## 🏗 系统架构 | System Architecture
 
 ```
 ┌─────────────────┐         ┌─────────────────┐         ┌────────────────┐
 │                 │  HTTPS  │                 │  HTTP   │                │
-│   Next.js 14    │────────▶│   FastAPI       │────────▶│  Alibaba Cloud │
-│   Frontend      │         │   Backend       │         │  Bailian AI    │
+│   Next.js 14    │────────▶│   FastAPI       │────────▶│  阿里云百炼     │
+│   前端          │         │   后端          │         │  Bailian AI    │
 │   (Port 3000)   │◀────────│   (Port 8000)   │◀────────│                │
 └─────────────────┘         └─────────────────┘         └────────────────┘
         │                           │
@@ -563,212 +574,210 @@ When ready for production:
 │              Supabase                      │
 │  ┌──────────────┐    ┌──────────────┐     │
 │  │  Auth        │    │  PostgreSQL  │     │
-│  │  (JWT)       │    │  Database    │     │
+│  │  JWT 认证    │    │  数据库      │     │
 │  └──────────────┘    └──────────────┘     │
 │                                            │
-│  Tables: profiles, chat_logs              │
+│  数据表: profiles, chat_logs              │
 └────────────────────────────────────────────┘
 ```
 
-### Request Flow
+### 请求流程 | Request Flow
 
-1. **User Login**: Frontend → Supabase Auth → JWT Token → Frontend
-2. **Chat Message**: Frontend → Backend API → Bailian AI → Backend → Frontend
-3. **Save Preferences**: Frontend → Backend API → Supabase Database
-4. **Generate Recommendations**: Backend reads profile → Constructs prompt → Bailian AI → Frontend
-
----
-
-## ✨ Features
-
-### ✅ Implemented
-
-- [x] User authentication (Supabase Auth)
-- [x] User preference setup (identity, budget, room types)
-- [x] AI-powered chat interface
-- [x] Dormitory recommendations
-- [x] Facility details viewing
-- [x] Responsive design (mobile/desktop)
-- [x] Development mode for easy testing
-
-### 🚧 Planned (from TODO.md)
-
-- [ ] RAG (Retrieval-Augmented Generation) knowledge base
-- [ ] Multi-session chat history
-- [ ] Persistent recommendation storage
-- [ ] Advanced user profiling
-- [ ] Cloud-synced chat logs
-- [ ] Multi-language support (EN/中文)
+1. **用户登录 | User Login**: 前端 → Supabase Auth → JWT Token → 前端
+2. **聊天消息 | Chat**: 前端 → 后端 API → 百炼 AI → 后端 → 前端
+3. **保存偏好 | Save Prefs**: 前端 → 后端 API → Supabase 数据库
+4. **生成推荐 | Recommendations**: 后端读取用户画像 → 构建提示词 → 百炼 AI → 前端
 
 ---
 
-## 🔧 Troubleshooting
+## ✨ 功能清单 | Features
 
-### Common Issues
+### ✅ 已实现 | Implemented
 
-#### Backend Issues
+- [x] 用户认证（Supabase Auth）| User Authentication
+- [x] 用户偏好设置（身份、预算、房型）| User Preferences
+- [x] AI 聊天界面 | AI Chat Interface
+- [x] 宿舍推荐 | Dormitory Recommendations
+- [x] 设施详情查看 | Facility Details
+- [x] 响应式设计（手机/桌面）| Responsive Design
+- [x] 开发模式便捷测试 | Development Mode
 
-**Problem: `ModuleNotFoundError: No module named 'app'`**
+### 🚧 规划中 | Planned (from TODO.md)
+
+- [ ] RAG 知识库检索 | RAG Knowledge Base
+- [ ] 多会话聊天历史 | Multi-session History
+- [ ] 推荐结果持久化 | Persistent Recommendations
+- [ ] 高级用户画像 | Advanced Profiling
+- [ ] 云端聊天记录同步 | Cloud Chat Sync
+- [ ] 多语言支持（英文/中文）| Multi-language Support
+
+---
+
+## 🔧 常见问题 | Troubleshooting
+
+### 后端问题 | Backend Issues
+
+**问题 Problem: `ModuleNotFoundError: No module named 'app'`**
 ```bash
-# Solution: Make sure you're in the backend directory and venv is activated
+# 解决方案: 确保在 backend 目录且虚拟环境已激活
 cd backend
 .\venv\Scripts\Activate.ps1  # Windows
 python -m pip install -r requirements.txt
 ```
 
-**Problem: `Port 8000 already in use`**
+**问题 Problem: `端口 8000 已被占用 | Port 8000 in use`**
 ```bash
-# Windows: Find and kill process
+# Windows: 查找并终止进程
 netstat -ano | findstr :8000
-taskkill /PID <process_id> /F
+taskkill /PID <进程ID> /F
 
-# Mac/Linux: Find and kill process
+# Mac/Linux: 查找并终止进程
 lsof -ti:8000 | xargs kill -9
 ```
 
-**Problem: `BAILIAN_API_KEY not set`**
+**问题 Problem: `BAILIAN_API_KEY 未设置 | Not Set`**
 ```bash
-# Verify your .env file exists and contains the key
+# 验证 .env 文件存在且包含密钥
 cat backend/.env | grep BAILIAN_API_KEY
 
-# Make sure there are no extra spaces or quotes
+# 确保没有多余的空格或引号
 ```
 
-#### Frontend Issues
+### 前端问题 | Frontend Issues
 
-**Problem: `Module not found: Can't resolve '@/...'`**
+**问题 Problem: `Module not found: Can't resolve '@/...'`**
 ```bash
-# Solution: Reinstall dependencies
+# 解决方案: 重新安装依赖
 cd frontend
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-**Problem: `Cannot connect to backend`**
+**问题 Problem: `无法连接后端 | Cannot connect to backend`**
 ```bash
-# Verify backend is running:
+# 验证后端正在运行:
 curl http://localhost:8000/
 
-# Check NEXT_PUBLIC_API_URL in .env.local
-# Should be: http://localhost:8000 (no trailing slash)
+# 检查 .env.local 中的 NEXT_PUBLIC_API_URL
+# 应该是: http://localhost:8000 (无尾部斜杠)
 ```
 
-**Problem: `Build fails with TypeScript errors`**
+**问题 Problem: `TypeScript 构建错误 | Build Fails`**
 ```bash
-# Run type checking
+# 运行类型检查
 npm run build
 
-# Fix errors shown, or temporarily skip:
-# (Not recommended for production)
+# 修复显示的错误
 ```
 
-#### Environment Variable Issues
+### 环境变量问题 | Environment Variable Issues
 
-**Problem: Changes to `.env` not taking effect**
+**问题 Problem: `.env` 修改未生效 | Changes Not Taking Effect**
 ```bash
-# Solution: Restart the server after changing .env
-# Press Ctrl+C to stop
-# Then restart: uvicorn app.main:app --reload
+# 解决方案: 修改 .env 后重启服务器
+# 按 Ctrl+C 停止
+# 然后重新启动: uvicorn app.main:app --reload
 ```
 
-**Problem: `.env` file not found**
+**问题 Problem: `.env` 文件未找到 | File Not Found**
 ```bash
-# Make sure you copied from example
+# 确保从示例文件复制
 cp .env.example .env  # Mac/Linux
 copy .env.example .env  # Windows
 ```
 
-### Getting Help
+### 获取帮助 | Getting Help
 
-1. **Check documentation**: See [docs/](docs/) folder
-2. **Review logs**: Check terminal output for error messages
-3. **Search issues**: GitHub Issues tab
-4. **Ask team**: Contact project maintainers
+1. **查看文档 | Check Docs**: 见 [docs/](docs/) 目录
+2. **查看日志 | Review Logs**: 检查终端输出的错误信息
+3. **搜索问题 | Search Issues**: GitHub Issues 标签页
+4. **联系团队 | Ask Team**: 联系项目维护者
 
 ---
 
-## 🤝 Contributing
+## 🤝 贡献指南 | Contributing
 
-We welcome contributions! Please follow these steps:
+我们欢迎贡献！请遵循以下步骤：
 
-### Contribution Workflow
+### 贡献流程 | Contribution Workflow
 
-1. **Fork the repository**
+1. **Fork 仓库 | Fork Repository**
    ```bash
-   # Click "Fork" on GitHub
+   # 在 GitHub 上点击 "Fork"
    ```
 
-2. **Clone your fork**
+2. **克隆你的 Fork | Clone Your Fork**
    ```bash
    git clone https://github.com/YOUR_USERNAME/HKUST_DormAdvisor_v20260202.git
    cd HKUST_DormAdvisor_v20260202
    ```
 
-3. **Create a feature branch**
+3. **创建功能分支 | Create Feature Branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-4. **Make your changes**
-   - Follow code style guidelines
-   - Add tests if applicable
-   - Update documentation
+4. **进行更改 | Make Changes**
+   - 遵循代码风格指南
+   - 添加测试（如适用）
+   - 更新文档
 
-5. **Commit your changes**
+5. **提交更改 | Commit Changes**
    ```bash
    git add .
-   git commit -m "feat: add your feature description"
+   git commit -m "feat: 添加你的功能描述"
    ```
 
-6. **Push to your fork**
+6. **推送到你的 Fork | Push to Fork**
    ```bash
    git push origin feature/your-feature-name
    ```
 
-7. **Open a Pull Request**
-   - Go to the original repository
-   - Click "New Pull Request"
-   - Select your branch
+7. **创建 Pull Request | Open PR**
+   - 前往原始仓库
+   - 点击 "New Pull Request"
+   - 选择你的分支
 
-### Commit Message Guidelines
+### 提交信息规范 | Commit Message Guidelines
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+遵循 [Conventional Commits](https://www.conventionalcommits.org/)：
 
 ```
-feat: add new feature
-fix: fix bug
-docs: update documentation
-style: format code
-refactor: refactor code
-test: add tests
-chore: update dependencies
+feat: 添加新功能 | add new feature
+fix: 修复 bug | fix bug
+docs: 更新文档 | update documentation
+style: 代码格式 | format code
+refactor: 重构代码 | refactor code
+test: 添加测试 | add tests
+chore: 更新依赖 | update dependencies
 ```
 
-### Code Style
+### 代码规范 | Code Style
 
-- **Frontend**: Use ESLint + Prettier
-- **Backend**: Follow PEP 8 (use `black` formatter)
-- **TypeScript**: Strict mode enabled
-- **Testing**: Write tests for new features
+- **前端 Frontend**: 使用 ESLint + Prettier
+- **后端 Backend**: 遵循 PEP 8（使用 `black` 格式化）
+- **TypeScript**: 启用严格模式
+- **测试 Testing**: 为新功能编写测试
 
 ---
 
-## 📄 License
+## 📄 许可证 | License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-## 📧 Contact
+## 📧 联系方式 | Contact
 
-- **Project Repository**: [GitHub](https://github.com/Timthn/HKUST_DormAdvisor_v20260202)
-- **Issue Tracker**: [GitHub Issues](https://github.com/Timthn/HKUST_DormAdvisor_v20260202/issues)
-- **Project Lead**: [Project Team]
+- **项目仓库 | Repository**: [GitHub](https://github.com/Timthn/HKUST_DormAdvisor_v20260202)
+- **问题追踪 | Issue Tracker**: [GitHub Issues](https://github.com/Timthn/HKUST_DormAdvisor_v20260202/issues)
+- **项目负责人 | Project Lead**: [Project Team]
 
 ---
 
 <div align="center">
 
+**用心打造，为科大学生服务 ❤️**  
 **Made with ❤️ for HKUST Students**
 
 **Happy Coding! 🚀**
