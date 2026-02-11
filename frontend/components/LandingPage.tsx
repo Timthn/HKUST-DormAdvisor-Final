@@ -46,10 +46,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onGuest }) => {
           <ShieldCheck size={20} />
           Login with School Account
         </button>
-        
-        <div className="mt-8 text-white/60 text-sm animate-in fade-in duration-1000 delay-500">
-          Having trouble? <span className="underline cursor-pointer hover:text-white transition-colors">Contact ITSC</span>
-        </div>
       </div>
 
       {showModal && (

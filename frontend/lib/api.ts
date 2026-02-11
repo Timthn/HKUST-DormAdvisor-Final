@@ -19,14 +19,22 @@ class APIClient {
       },
     })
 
-    // Add request interceptor to include auth token
-    this.client.interceptors.request.use(async (config) => {
-      const token = await getAccessToken()
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-    })
+    // Check if we're in development mode
+    const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+
+    // Only add auth interceptor in production mode
+    // In dev mode, backend handles test user automatically
+    if (!DEV_MODE) {
+      this.client.interceptors.request.use(async (config) => {
+        const token = await getAccessToken()
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
+        return config
+      })
+    } else {
+      console.log('[DEV_MODE] Skipping authentication - backend will use test user')
+    }
   }
 
   // ========== Chat API ==========

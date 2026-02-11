@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect } from 'react';
-import { Menu, HelpCircle, Paperclip, Image as ImageIcon, Mic, Send } from 'lucide-react';
+import { Menu, Send } from 'lucide-react';
 import { Message } from '@/types';
 import { BOT_AVATAR_URL } from '@/lib/constants';
 
@@ -53,7 +53,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             </span>
           </div>
         </div>
-        <HelpCircle className="text-gray-400 hover:text-[#003366] cursor-pointer transition-colors" size={20} />
       </header>
 
       {/* Messages */}
@@ -88,14 +87,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       {/* Input Area */}
       <div className="bg-white p-4 border-t border-gray-200">
         <div className="max-w-3xl mx-auto relative flex items-center gap-2">
-          
-          <button className="text-gray-400 hover:text-[#003366] p-2 rounded-full hover:bg-blue-50 transition-colors">
-            <Paperclip size={20} />
-          </button>
-          <button className="text-gray-400 hover:text-[#003366] p-2 rounded-full hover:bg-blue-50 transition-colors">
-            <ImageIcon size={20} />
-          </button>
-
           <div className="flex-1 relative group">
             <input 
               type="text" 
@@ -103,9 +94,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask about dorms (e.g., 'Does Hall 6 have a sea view?')"
-              className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm py-3.5 pl-5 pr-12 rounded-full focus:outline-none focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all"
+              className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm py-3.5 pl-5 pr-5 rounded-full focus:outline-none focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all"
             />
-            <Mic className="absolute right-4 top-3.5 text-gray-400 cursor-pointer hover:text-[#003366]" size={18} />
           </div>
           <button 
             onClick={onSendMessage}

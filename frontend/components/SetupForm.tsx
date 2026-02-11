@@ -114,7 +114,7 @@ const SetupForm: React.FC<SetupFormProps> = ({ onStart, onBack, existingData }) 
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Priority Factors</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Priority Factors <span className="text-gray-400 font-normal ml-1">Optional</span></label>
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.priorities.map((p, idx) => (
                 <span key={idx} className="bg-orange-50 text-orange-700 border border-orange-100 px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2">
