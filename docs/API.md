@@ -22,9 +22,9 @@ Authorization: Bearer <your_jwt_token>
 
 ## 聊天 API
 
-### POST /api/chat/
+### POST /api/chat/stream
 
-发送聊天消息并获取 AI 回复。
+发送聊天消息，获取 AI 流式回复（Server-Sent Events）。
 
 **Request Body**:
 ```json
@@ -33,17 +33,31 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-**Response**:
-```json
-{
-  "answer": "是的，Hall I 高层房间可以看到部分海景...",
-  "rag_source": null,
-  "timestamp": "2026-02-09T12:00:00Z"
-}
+**Response**: `Content-Type: text/event-stream`
+
+流式 SSE 事件，每条事件格式如下：
+```
+data: {"text": "是的，"}
+
+data: {"text": "Hall I 高层房间"}
+
+data: {"text": "可以看到部分海景..."}
+
+data: [DONE]
 ```
 
+如发生错误，会收到：
+```
+data: {"error": "错误描述"}
+```
+
+**说明**:
+- 用户消息在流式传输**开始前**插入 `chat_logs`
+- AI 完整回复在流式传输**结束后**插入 `chat_logs`
+- 后端自动处理 `memory_id` 懒初始化（首次对话时调用 Bailian CreateMemory API）
+
 **状态码**:
-- `200`: 成功
+- `200`: 成功（流式响应）
 - `401`: 未授权（Token 无效）
 - `500`: 服务器错误
 
@@ -91,30 +105,40 @@ Authorization: Bearer <your_jwt_token>
 **Response**:
 ```json
 {
-  "advisor_comment": "Based on your budget of HK$4,000 and preference for quiet environment, I recommend the following halls...",
   "recommendations": [
     {
-      "name": "Hall IV",
-      "tags": ["Top Pick", "Renovated", "Balanced"],
-      "score": 95,
-      "reason": "Perfect match for your budget with modern facilities"
+      "hall_id": "7",
+      "name": "Chan Sui Kau & Chan Lam Moon Chun Hall (Hall 7)",
+      "reason": "Hall 7 offers en-suite bathrooms shared by small groups and a pantry on each floor, matching your preference for convenience and privacy.",
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/hall7_ext.jpg",
+      "price_info": "Single: HK$37,252 | Double: HK$25,020 (Per year, excl. air-conditioning fee)",
+      "facilities": ["En-suite Bathroom (Shared by 4–6)", "Laundry Room", "Pantry on each floor", "Common Rooms"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall7"
     },
     {
-      "name": "Hall V",
-      "tags": ["Quiet", "Single Room", "Private"],
-      "score": 90,
-      "reason": "Ideal for students seeking a peaceful study environment"
+      "hall_id": "4",
+      "name": "Cheng Yu Tung Hall (Hall 4)",
+      "reason": "Hall 4 features sea view rooms and is close to the main academic buildings, ideal for students who prioritize location.",
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/hall4_ext.jpg",
+      "price_info": "Single: HK$XX,XXX | Double: HK$XX,XXX (Per year, excl. air-conditioning fee)",
+      "facilities": ["Single / Double Rooms", "Laundry Room", "Common Room", "Sea View"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall4"
     },
     {
-      "name": "Hall II",
-      "tags": ["Sea View", "Value"],
-      "score": 85,
-      "reason": "Good value with beautiful ocean views"
+      "hall_id": "JHC",
+      "name": "Jockey Hall Complex (JHC)",
+      "reason": "JHC offers single rooms at a competitive price, suitable for students who value personal space on a budget.",
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/jhc_ext.jpg",
+      "price_info": "Single: HK$XX,XXX (Per year, excl. air-conditioning fee)",
+      "facilities": ["Single Rooms", "Laundry Room", "Common Room"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/jockey-hall-complex"
     }
   ],
-  "timestamp": "2026-02-09T12:00:00Z"
+  "timestamp": "2026-03-01T12:00:00Z"
 }
 ```
+
+> 推荐结果同时会持久化到 `profiles.last_recommendation`，下次加载时可直接读取。
 
 **状态码**:
 - `200`: 成功
@@ -141,15 +165,19 @@ Authorization: Bearer <your_jwt_token>
 **Response**:
 ```json
 {
-  "id": "uuid-string",
-  "identity": "Undergraduate",
-  "budget_range": "HK$ 3000 - 5000",
-  "preferences": {
-    "room_types": ["Single Room", "Double Room"],
-    "priorities": ["Quiet", "Near Gym"],
-    "additional_info": "I prefer a quiet environment for studying"
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "form_preferences": {
+    "identity": "Local Undergraduate",
+    "gender": "Male",
+    "budget_range": "HK$ 3000 - 5000",
+    "room_types": ["Single Room"],
+    "priorities": ["Quiet", "Near Library"],
+    "additional_info": "I need a quiet place to focus on my studies"
   },
-  "updated_at": "2026-02-09T12:00:00Z"
+  "inferred_preferences": "The student appears to value silent study hours late at night and shows a strong preference for single-occupancy rooms based on repeated mentions of privacy.",
+  "memory_id": "mem-abc123xyz",
+  "last_recommendation": null,
+  "updated_at": "2026-03-01T12:00:00Z"
 }
 ```
 
@@ -162,14 +190,15 @@ Authorization: Bearer <your_jwt_token>
 
 ### POST /api/profile/
 
-创建或更新用户画像（完整更新）。
+更新用户的表单偏好（`form_preferences`）。**本端点只执行 UPDATE，不执行 INSERT**。Profile 行由 Supabase DB Trigger 在用户注册时自动创建。
 
 **Request Body**:
 ```json
 {
-  "identity": "Undergraduate",
-  "budget_range": "HK$ 3000 - 5000",
-  "preferences": {
+  "form_preferences": {
+    "identity": "Local Undergraduate",
+    "gender": "Male",
+    "budget_range": "HK$ 3000 - 5000",
     "room_types": ["Single Room"],
     "priorities": ["Quiet", "Near Library"],
     "additional_info": "I need a quiet place to focus on my studies"
@@ -177,48 +206,12 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-**Response**:
-```json
-{
-  "id": "uuid-string",
-  "identity": "Undergraduate",
-  "budget_range": "HK$ 3000 - 5000",
-  "preferences": {
-    "room_types": ["Single Room"],
-    "priorities": ["Quiet", "Near Library"],
-    "additional_info": "I need a quiet place to focus on my studies"
-  },
-  "updated_at": "2026-02-09T12:05:00Z"
-}
-```
+**Response**: 同 `GET /api/profile/` 格式。
 
 **状态码**:
 - `200`: 成功
 - `401`: 未授权
-- `500`: 服务器错误
-
----
-
-### PATCH /api/profile/
-
-部分更新用户画像（只更新提供的字段）。
-
-**Request Body** (所有字段可选):
-```json
-{
-  "budget_range": "HK$ 5000 - 8000",
-  "preferences": {
-    "priorities": ["Quiet", "Near Gym", "Sea View"]
-  }
-}
-```
-
-**Response**: 同 POST /api/profile/
-
-**状态码**:
-- `200`: 成功
-- `401`: 未授权
-- `404`: 画像不存在
+- `404`: Profile 不存在（DB Trigger 未执行，需检查 Supabase 配置）
 - `500`: 服务器错误
 
 ---
@@ -278,20 +271,57 @@ Authorization: Bearer <your_jwt_token>
 ## 前端集成示例
 
 ```typescript
-import { api } from '@/lib/api'
+// 发送聊天消息（SSE 流式）
+const response = await fetch(`${API_URL}/api/chat/stream`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify({ message: 'Hall I 有海景吗？' })
+})
 
-// 发送聊天消息
-const response = await api.sendChatMessage('Hall I 有海景吗？')
-console.log(response.answer)
+const reader = response.body!.getReader()
+const decoder = new TextDecoder()
+let buffer = ''
 
-// 生成推荐
-const recommendations = await api.generateRecommendations()
-console.log(recommendations.recommendations)
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  buffer += decoder.decode(value, { stream: true })
+  const lines = buffer.split('\n')
+  buffer = lines.pop() ?? ''
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const payload = line.slice(6)
+      if (payload === '[DONE]') return
+      const { text } = JSON.parse(payload)
+      // append text to UI
+    }
+  }
+}
+
+// 生成推荐（非流式）
+const rec = await fetch(`${API_URL}/api/recommend/`, {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${token}` }
+})
+const { recommendations } = await rec.json()
 
 // 更新用户画像
-await api.updateProfile({
-  budget: 'HK$ 5000 - 8000',
-  priorities: ['Quiet', 'Sea View']
+await fetch(`${API_URL}/api/profile/`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+  body: JSON.stringify({
+    form_preferences: {
+      identity: 'Local Undergraduate',
+      gender: 'Male',
+      budget_range: 'HK$ 3000 - 5000',
+      room_types: ['Single Room'],
+      priorities: ['Quiet'],
+      additional_info: ''
+    }
+  })
 })
 ```
 

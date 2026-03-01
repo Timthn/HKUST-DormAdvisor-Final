@@ -89,6 +89,7 @@ hkust-dorm-advisor_202602/
 │   │   ├── services/               # 业务逻辑
 │   │   │   ├── bailian_service.py  # 百炼 AI 服务
 │   │   │   ├── recommendation_service.py
+│   │   │   ├── extractor_service.py  # DeepSeek 隐性偏好分析（Extractor）
 │   │   │   └── rag_service.py      # RAG 检索（规划中）
 │   │   ├── models/                 # 数据模型
 │   │   │   └── schemas.py          # Pydantic 模型
@@ -163,7 +164,8 @@ hkust-dorm-advisor_202602/
 | **Git** | 最新 Latest | `git --version` | [git-scm.com](https://git-scm.com/) |
 
 **必需账号与密钥 | Required Accounts & Keys:**
-- ✅ **阿里云百炼** API Key 和 App ID（必需，用于 AI 功能）
+- ✅ **阿里云百炼** API Key + 两个 Agent 应用 ID（对话 Agent + 推荐 Agent 各一个）
+- ✅ **DeepSeek** API Key（Extractor 模块使用）
 - ⚠️ **Supabase** 账号（可选，仅生产环境需要）
 
 ---
@@ -270,7 +272,8 @@ cp .env.example .env
 # ========================================
 # 从以下网址获取: https://bailian.console.aliyun.com/
 BAILIAN_API_KEY=sk-你的实际API密钥
-BAILIAN_APP_ID=你的实际应用ID
+BAILIAN_APP_ID_CHAT=你的对话Agent应用ID
+BAILIAN_APP_ID_RECOMMEND=你的推荐Agent应用ID
 
 # ========================================
 # 开发模式 | Development Mode
@@ -295,6 +298,12 @@ JWT_SECRET=your-random-secret-key-min-32-chars
 JWT_ALGORITHM=HS256
 
 # ========================================
+# DeepSeek API（Extractor 模块）
+# DeepSeek API (for Extractor module)
+# ========================================
+DEEPSEEK_API_KEY=your-deepseek-api-key
+
+# ========================================
 # CORS 和服务器配置
 # CORS & Server Configuration
 # ========================================
@@ -303,8 +312,13 @@ HOST=0.0.0.0
 PORT=8000
 ```
 
+> **CRITICAL — `JWT_SECRET`**: This value must be **identical** to the **JWT Secret** shown in your Supabase project dashboard under `Settings → API → JWT Settings`. The backend uses this secret to verify tokens issued by Supabase Auth. If the two values differ, every authenticated endpoint will return `401 Unauthorized`.
+
 **⚠️ 重要提示 | Important:**
-- `BAILIAN_API_KEY` 和 `BAILIAN_APP_ID` 是**必需**的
+- `BAILIAN_API_KEY`、`BAILIAN_APP_ID_CHAT`、`BAILIAN_APP_ID_RECOMMEND` 是**必需**的（三个都要填）
+- `DEEPSEEK_API_KEY` 是**必需**的（Extractor 模块使用）
+- 开发模式 (`DEV_MODE=true`) 下，Supabase 和 JWT 配置可选
+- 切勿将 `.env` 文件提交到 Git（已在 `.gitignore` 中）
 - 开发模式 (`DEV_MODE=true`) 下，Supabase 和 JWT 配置可选
 - 切勿将 `.env` 文件提交到 Git（已在 `.gitignore` 中）
 
@@ -523,10 +537,12 @@ npm run build
 访问 http://localhost:8000/api/docs 确保所有端点已加载：
 
 **预期端点 | Expected Endpoints:**
-- `POST /api/chat/send` - 发送聊天消息
-- `POST /api/recommend/generate` - 生成推荐
-- `GET /api/profile/{user_id}` - 获取用户资料
-- `PUT /api/profile/{user_id}` - 更新用户资料
+- `POST /api/chat/stream` - 发送聊天消息（SSE 流式）
+- `GET /api/chat/history` - 获取聊天历史
+- `POST /api/recommend/` - 生成推荐
+- `GET /api/recommend/refresh` - 刷新推荐
+- `GET /api/profile/` - 获取当前用户画像
+- `POST /api/profile/` - 更新用户画像（form_preferences）
 
 ---
 
@@ -582,32 +598,34 @@ npm run build
 ## 🏗 系统架构 | System Architecture
 
 ```
-┌─────────────────┐         ┌─────────────────┐         ┌────────────────┐
-│                 │  HTTPS  │                 │  HTTP   │                │
-│   Next.js 14    │────────▶│   FastAPI       │────────▶│  阿里云百炼     │
-│   前端          │         │   后端          │         │  Bailian AI    │
-│   (Port 3000)   │◀────────│   (Port 8000)   │◀────────│                │
-└─────────────────┘         └─────────────────┘         └────────────────┘
-        │                           │
-        │                           │
-        ▼                           ▼
-┌────────────────────────────────────────────┐
-│              Supabase                      │
-│  ┌──────────────┐    ┌──────────────┐     │
-│  │  Auth        │    │  PostgreSQL  │     │
-│  │  JWT 认证    │    │  数据库      │     │
-│  └──────────────┘    └──────────────┘     │
-│                                            │
-│  数据表: profiles, chat_logs              │
-└────────────────────────────────────────────┘
+┌─────────────────┐         ┌──────────────────────────────────┐
+│                 │  HTTPS  │          FastAPI 后端             │
+│   Next.js 14    │────────▶│          (Port 8000)              │
+│   前端          │◀────────│                                   │
+│   (Port 3000)   │  SSE /  │  ┌──────────────────────────┐   │
+│                 │  JSON   │  │ chat.py (SSE StreamingResp)│   │──▶ Bailian Chat Agent
+└─────────────────┘         │  ├──────────────────────────┤   │
+                             │  │ recommend.py              │   │──▶ Bailian Recommend Agent
+                             │  ├──────────────────────────┤   │
+                             │  │ extractor_service.py      │   │──▶ DeepSeek API
+                             │  └──────────────────────────┘   │
+                             └──────────────────────────────────┘
+                                              │
+                                              ▼
+                             ┌──────────────────────────────────┐
+                             │            Supabase               │
+                             │  Auth  │  profiles  │ chat_logs  │
+                             │        │  halls     │            │
+                             └──────────────────────────────────┘
 ```
 
 ### 请求流程 | Request Flow
 
 1. **用户登录 | User Login**: 前端 → Supabase Auth → JWT Token → 前端
-2. **聊天消息 | Chat**: 前端 → 后端 API → 百炼 AI → 后端 → 前端
-3. **保存偏好 | Save Prefs**: 前端 → 后端 API → Supabase 数据库
-4. **生成推荐 | Recommendations**: 后端读取用户画像 → 构建提示词 → 百炼 AI → 前端
+2. **聊天消息 | Chat (SSE)**: 前端 → `POST /api/chat/stream` → Bailian Chat Agent → SSE 流式返回 → 前端实时渲染；AI 回复结束后写入 `chat_logs`
+3. **Extractor（后台）**: 每 20 条用户消息后自动触发 → DeepSeek API 分析对话 → 更新 `profiles.inferred_preferences`
+4. **生成推荐 | Recommendations**: `POST /api/recommend/` → 读取 `form_preferences` + `inferred_preferences` → Bailian Recommend Agent → 查 `halls` 表补全信息 → 写入 `profiles.last_recommendation` → 返回前端
+5. **保存偏好 | Save Prefs**: 前端 SetupForm → `POST /api/profile/` → 更新 `profiles.form_preferences`（UPDATE only，行由 DB Trigger 创建）
 
 ---
 
@@ -616,9 +634,12 @@ npm run build
 ### ✅ 已实现 | Implemented
 
 - [x] 用户认证（Supabase Auth）| User Authentication
-- [x] 用户偏好设置（身份、预算、房型）| User Preferences
-- [x] AI 聊天界面 | AI Chat Interface
-- [x] 宿舍推荐 | Dormitory Recommendations
+- [x] 用户偏好设置（form_preferences）| User Preferences via SetupForm
+- [x] AI 流式聊天（SSE StreamingResponse）| Streaming AI Chat
+- [x] Bailian 长期记忆（memory_id 懒初始化）| Long-term Memory
+- [x] Extractor 模块（DeepSeek 隐性偏好分析）| Hidden Preference Extraction
+- [x] 宿舍推荐（双 Agent 架构）| Dormitory Recommendations
+- [x] 推荐结果持久化（profiles.last_recommendation）| Persistent Recommendations
 - [x] 设施详情查看 | Facility Details
 - [x] 响应式设计（手机/桌面）| Responsive Design
 - [x] 开发模式便捷测试 | Development Mode
