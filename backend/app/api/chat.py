@@ -5,7 +5,7 @@ Handles chat interactions with AI advisor
 from fastapi import APIRouter, Depends, HTTPException
 from app.models.schemas import ChatMessage, ChatResponse
 from app.middleware.auth import get_current_user_id
-from app.services.bailian_service import get_bailian_service
+from app.services.bailian_service import get_chat_bailian_service
 from app.database.supabase_client import get_supabase, get_dev_storage
 from datetime import datetime
 
@@ -29,7 +29,7 @@ async def send_chat_message(
     6. Store user message and AI response in database # ########## This may need to changed to supabase auth
     7. Return AI response # ########## This may need to changed to supabase auth
     """
-    bailian = get_bailian_service()
+    bailian = get_chat_bailian_service()
     supabase = get_supabase()
     
     try:
@@ -88,8 +88,8 @@ Please provide a helpful response based on the user's context and question.
 """
         
         # Step 4: Call Bailian API
-        # Use user_id as session_id to maintain conversation context
-        ai_response = await bailian.send_message(context_prompt, session_id=user_id)
+        messages = [{"role": "user", "content": context_prompt}]
+        ai_response = await bailian.send_message(messages)
         
         # Step 5: Store chat logs
         if supabase:
