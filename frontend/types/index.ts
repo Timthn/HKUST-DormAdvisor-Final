@@ -33,15 +33,6 @@ export interface Message {
   timestamp: number
 }
 
-export interface Session {
-  id: string
-  title: string
-  formData: FormData
-  messages: Message[]
-  createdAt: number
-  lastUpdated: number
-}
-
 // ─── Hall / Recommendation Types ─────────────────────────────────────────────
 
 /**

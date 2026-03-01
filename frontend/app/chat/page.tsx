@@ -8,7 +8,7 @@ import RecommendationPanel from '@/components/RecommendationPanel'
 import FacilitiesModal from '@/components/FacilitiesModal'
 import { api, streamChatMessage } from '@/lib/api'
 import { getSession, signOut } from '@/lib/supabase'
-import type { Session, FormData, Message, HallRecommendationItem } from '@/types'
+import type { FormData, Message, HallRecommendationItem } from '@/types'
 
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
 
@@ -29,8 +29,6 @@ export default function ChatPage() {
   const [modalHall, setModalHall] = useState<HallRecommendationItem | null>(null)
 
   // ── Data state ──────────────────────────────────────────────────────────────
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [currentSessionId] = useState<string | null>(null)
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM)
   const [recommendations, setRecommendations] = useState<HallRecommendationItem[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -53,10 +51,9 @@ export default function ChatPage() {
       setMessages([{
         id: Date.now(),
         sender: 'bot',
-        text: " Welcome to HKUST Dorm Advisor! (Development Mode)\n\nStart chatting or fill in your preferences to get hall recommendations.",
+        text: "👋 Welcome to HKUST Dorm Advisor! (Development Mode)\n\nStart chatting or fill in your preferences to get hall recommendations.",
         timestamp: Date.now(),
       }])
-      loadSessions()
     }
   }, [])
 
@@ -66,7 +63,6 @@ export default function ChatPage() {
       router.push('/') // Auth is handled by LandingPage modal at /
     } else {
       await loadProfile()
-      loadSessions()
     }
   }
 
@@ -142,11 +138,6 @@ export default function ChatPage() {
     } finally {
       setIsAnalyzing(false)
     }
-  }
-
-  const loadSessions = () => {
-    const saved = localStorage.getItem('hkust_dorm_sessions')
-    if (saved) setSessions(JSON.parse(saved))
   }
 
   // ── Chat: SSE streaming ─────────────────────────────────────────────────────
@@ -237,11 +228,7 @@ export default function ChatPage() {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        sessions={sessions}
-        currentSessionId={currentSessionId}
-        onSwitchSession={() => {}}
         onNewChat={() => router.push('/setup')}
-        onDeleteSession={() => {}}
         onLogout={handleLogout}
       />
 

@@ -37,11 +37,19 @@ export default function LandingPage() {
 
   const closeModal = () => setShowModal(false)
 
+  // Dev bypass: hardcoded credentials skip Supabase auth (remove before production)
+  const DEV_BYPASS_EMAIL = 'thnganaa@connect.ust.hk'
+  const DEV_BYPASS_PASSWORD = 'aazh0994'
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoginError('')
     setLoginLoading(true)
     try {
+      if (loginEmail === DEV_BYPASS_EMAIL && loginPassword === DEV_BYPASS_PASSWORD) {
+        router.push('/setup')
+        return
+      }
       const { error } = await signInWithEmail(loginEmail, loginPassword)
       if (error) {
         setLoginError(error.message)
