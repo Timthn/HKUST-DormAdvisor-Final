@@ -8,36 +8,29 @@ from datetime import datetime
 
 # ---------- User Profile Models ----------
 
-class UserPreferences(BaseModel):
-    """User preference settings"""
-    room_types: List[str] = Field(default_factory=list, description="Preferred room types")
-    priorities: List[str] = Field(default_factory=list, description="Priority tags")
-    additional_info: Optional[str] = Field(None, description="Additional requirements")
-
-
-class ProfileBase(BaseModel):
-    """Base profile schema"""
-    identity: str = Field(..., description="Student identity: Undergraduate/Postgraduate/Exchange")
-    budget_range: str = Field(..., description="Budget range (e.g., 'HK$ 3000 - 5000')")
-    preferences: UserPreferences = Field(default_factory=UserPreferences)
-
-
-class ProfileCreate(ProfileBase):
-    """Profile creation schema"""
-    pass
+class FormPreferences(BaseModel):
+    """Structured representation of SetupForm user input"""
+    identity: str = Field(..., description="Local Undergraduate / Non-Local Undergraduate / Exchange Student")
+    gender: Optional[str] = None
+    budget_range: str = Field(..., description="e.g. 'HK$ 15,000 - 20,000'")
+    room_types: List[str] = Field(default_factory=list)
+    priorities: List[str] = Field(default_factory=list)
+    additional_info: Optional[str] = None
 
 
 class ProfileUpdate(BaseModel):
-    """Profile update schema (all fields optional)"""
-    identity: Optional[str] = None
-    budget_range: Optional[str] = None
-    preferences: Optional[UserPreferences] = None
+    """Profile update schema — all fields optional, used by POST /api/profile/"""
+    form_preferences: Optional[FormPreferences] = None
 
 
-class ProfileResponse(ProfileBase):
+class ProfileResponse(BaseModel):
     """Profile response schema"""
-    id: str
-    updated_at: datetime
+    user_id: str
+    form_preferences: Optional[Dict[str, Any]] = None
+    inferred_preferences: Optional[str] = None
+    memory_id: Optional[str] = None
+    last_recommendation: Optional[Any] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -46,57 +39,50 @@ class ProfileResponse(ProfileBase):
 # ---------- Chat Models ----------
 
 class ChatMessage(BaseModel):
-    """Chat message schema"""
-    message: str = Field(..., min_length=1, max_length=2000, description="User message")
+    """Chat message request"""
+    message: str = Field(..., min_length=1, max_length=2000)
 
 
 class ChatResponse(BaseModel):
-    """Chat response schema"""
-    answer: str = Field(..., description="AI generated answer")
-    rag_source: Optional[str] = Field(None, description="Source document if RAG was used")
+    """Non-streaming chat response (kept for fallback / history)"""
+    answer: str
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
-class ChatHistory(BaseModel):
-    """Chat history entry"""
+class ChatHistoryEntry(BaseModel):
+    """Single chat_logs row"""
     id: int
-    role: str = Field(..., description="'user' or 'assistant'")
+    role: str
     content: str
     created_at: datetime
 
 
 # ---------- Recommendation Models ----------
 
-class HallRecommendation(BaseModel):
-    """Single hall recommendation"""
-    name: str = Field(..., description="Hall name")
-    tags: List[str] = Field(default_factory=list, description="Feature tags")
-    score: int = Field(..., ge=0, le=100, description="Match score (0-100)")
-    reason: Optional[str] = Field(None, description="Recommendation reason")
+class HallRecommendationItem(BaseModel):
+    """Single hall in recommendation result"""
+    hall_id: str
+    name: str
+    reason: str
+    image_url: Optional[str] = None
+    price_info: Optional[str] = None
+    facilities: Optional[List[str]] = None
+    website_url: Optional[str] = None
 
 
 class RecommendationResponse(BaseModel):
     """Recommendation API response"""
-    advisor_comment: str = Field(..., description="AI advisor's summary comment")
-    recommendations: List[HallRecommendation] = Field(..., max_items=5, description="Top hall recommendations")
+    recommendations: List[HallRecommendationItem]
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
-# ---------- Hall Facility Models ----------
+# ---------- Hall Models ----------
 
 class HallDetails(BaseModel):
-    """Hall facility details"""
+    """Hall row from halls table"""
+    hall_id: str
     name: str
-    avg_price: str
-    room_types: str
-    ac: str
-    bathroom: str
-    gym: str
-    common: str
-    laundry: str
-    features: str
-    tags: Optional[List[str]] = None
-    tag_color: Optional[str] = None
+    static_info: Dict[str, Any]
 
 
 # ---------- Auth Models ----------
@@ -108,6 +94,6 @@ class TokenData(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Error response schema"""
+    """Error response"""
     detail: str
     error_code: Optional[str] = None
