@@ -1,78 +1,84 @@
-export type Identity = 'Undergraduate' | 'Postgraduate' | 'Exchange Student';
-export type BudgetOption = 'HK$ 2000 - 3000' | 'HK$ 3000 - 5000' | 'HK$ 5000 - 8000' | 'HK$ 8000+';
-export type RoomType = 'Single Room' | 'Double Room' | 'Triple Room' | 'En-suite' | 'Sea View';
+// ─── Form / User Input Types ─────────────────────────────────────────────────
+
+export type Identity =
+  | 'Local Undergraduate'
+  | 'Non-Local Undergraduate'
+  | 'Exchange Student'
+
+export type Gender = 'Male' | 'Female'
+
+export type BudgetOption =
+  | 'HK$ 15,000 - 20,000'
+  | 'HK$ 20,000 - 25,000'
+  | 'HK$ 25,000 - 30,000'
+  | 'HK$ 30,000+'
+
+export type RoomType = 'Single Room' | 'Double Room' | 'Triple Room'
 
 export interface FormData {
-  identity: Identity;
-  budget: BudgetOption;
-  roomTypes: RoomType[];
-  priorities: string[];
-  additionalInfo: string;
+  identity: Identity
+  gender: Gender
+  budget: BudgetOption
+  roomTypes: RoomType[]
+  priorities: string[]
+  additionalInfo: string
 }
 
+// ─── Chat Types ───────────────────────────────────────────────────────────────
+
 export interface Message {
-  id: number;
-  sender: 'user' | 'bot';
-  text: string;
-  timestamp: number;
+  id: number
+  sender: 'user' | 'bot'
+  text: string
+  timestamp: number
 }
 
 export interface Session {
-  id: string;
-  title: string;
-  formData: FormData;
-  messages: Message[];
-  aiAnalysis: string;
-  createdAt: number;
-  lastUpdated: number;
+  id: string
+  title: string
+  formData: FormData
+  messages: Message[]
+  createdAt: number
+  lastUpdated: number
 }
 
-export interface HallDetails {
-  name: string;
-  avgPrice: string;
-  roomTypes: string;
-  ac: string;
-  bathroom: string;
-  gym: string;
-  common: string;
-  laundry: string;
-  features: string;
-  tags?: string[];
-  tagColor?: string;
+// ─── Hall / Recommendation Types ─────────────────────────────────────────────
+
+/**
+ * A single hall recommendation item returned by POST /api/recommend/
+ * Also used as the data shape for FacilitiesModal.
+ */
+export interface HallRecommendationItem {
+  hall_id: string
+  name: string
+  reason: string
+  image_url?: string
+  price_info?: string
+  facilities?: string[]
+  website_url?: string
 }
 
-export interface HallDataMap {
-  [key: string]: HallDetails;
-}
+// ─── API Response Types ───────────────────────────────────────────────────────
 
-// API Response Types
-export interface ChatResponse {
-  answer: string;
-  rag_source?: string;
-  timestamp: string;
-}
-
-export interface HallRecommendation {
-  name: string;
-  tags: string[];
-  score: number;
-  reason?: string;
-}
-
+/** POST /api/recommend/ response */
 export interface RecommendationResponse {
-  advisor_comment: string;
-  recommendations: HallRecommendation[];
-  timestamp: string;
+  recommendations: HallRecommendationItem[]
+  timestamp: string
 }
 
+/** GET/POST /api/profile/ response */
 export interface UserProfile {
-  id: string;
-  identity: string;
-  budget_range: string;
-  preferences: {
-    room_types: string[];
-    priorities: string[];
-    additional_info?: string;
-  };
-  updated_at: string;
+  user_id: string
+  form_preferences?: {
+    identity?: string
+    gender?: string
+    budget_range?: string
+    room_types?: string[]
+    priorities?: string[]
+    additional_info?: string
+  }
+  inferred_preferences?: string
+  memory_id?: string
+  last_recommendation?: HallRecommendationItem[]
+  updated_at?: string
 }

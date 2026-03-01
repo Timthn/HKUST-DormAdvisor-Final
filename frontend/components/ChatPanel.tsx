@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect } from 'react';
-import { Menu, Send } from 'lucide-react';
+import { Menu, Send, LogOut } from 'lucide-react';
 import { Message } from '@/types';
 import { BOT_AVATAR_URL } from '@/lib/constants';
 
@@ -12,6 +12,7 @@ interface ChatPanelProps {
   setInputText: (text: string) => void;
   onSendMessage: () => void;
   onToggleSidebar: () => void;
+  onLogout: () => void;
 }
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -20,7 +21,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   inputText,
   setInputText,
   onSendMessage,
-  onToggleSidebar
+  onToggleSidebar,
+  onLogout,
 }) => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +55,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             </span>
           </div>
         </div>
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors font-medium"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
       </header>
 
       {/* Messages */}

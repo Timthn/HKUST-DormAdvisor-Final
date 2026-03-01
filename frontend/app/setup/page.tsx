@@ -10,10 +10,7 @@ export default function SetupPage() {
 
   const handleStart = async (data: FormData) => {
     try {
-      // Save profile to backend
-      await api.createProfile(data)
-      
-      // Navigate to chat page
+      await api.saveProfile(data)
       router.push('/chat')
     } catch (error) {
       console.error('Failed to save profile:', error)

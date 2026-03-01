@@ -1,12 +1,14 @@
 /**
  * API Client for Backend Communication
- * Handles all HTTP requests to FastAPI backend
  */
 import axios, { AxiosInstance } from 'axios'
 import { getAccessToken } from './supabase'
-import type { ChatResponse, RecommendationResponse, UserProfile, FormData } from '@/types'
+import type { RecommendationResponse, UserProfile, FormData } from '@/types'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+
+// ─── Axios client (for non-streaming requests) ────────────────────────────────
 
 class APIClient {
   private client: AxiosInstance
@@ -14,42 +16,47 @@ class APIClient {
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     })
 
-    // Check if we're in development mode
-    const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
-
-    // Only add auth interceptor in production mode
-    // In dev mode, backend handles test user automatically
     if (!DEV_MODE) {
       this.client.interceptors.request.use(async (config) => {
         const token = await getAccessToken()
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-        }
+        if (token) config.headers.Authorization = `Bearer ${token}`
         return config
       })
     } else {
-      console.log('[DEV_MODE] Skipping authentication - backend will use test user')
+      console.log('[DEV_MODE] Skipping authentication')
     }
   }
 
-  // ========== Chat API ==========
+  // ── Profile API ─────────────────────────────────────────────────────────────
 
-  async sendChatMessage(message: string): Promise<ChatResponse> {
-    const response = await this.client.post<ChatResponse>('/api/chat/', { message })
+  async getProfile(): Promise<UserProfile> {
+    const response = await this.client.get<UserProfile>('/api/profile/')
     return response.data
   }
 
-  async getChatHistory(limit: number = 50): Promise<any> {
-    const response = await this.client.get('/api/chat/history', { params: { limit } })
+  /**
+   * Save form preferences. Backend only does UPDATE (profile row created by DB trigger).
+   * Body structure: { form_preferences: { identity, gender, budget_range, room_types, priorities, additional_info } }
+   */
+  async saveProfile(data: FormData): Promise<UserProfile> {
+    const body = {
+      form_preferences: {
+        identity: data.identity,
+        gender: data.gender,
+        budget_range: data.budget,
+        room_types: data.roomTypes,
+        priorities: data.priorities,
+        additional_info: data.additionalInfo,
+      },
+    }
+    const response = await this.client.post<UserProfile>('/api/profile/', body)
     return response.data
   }
 
-  // ========== Recommendation API ==========
+  // ── Recommendation API ──────────────────────────────────────────────────────
 
   async generateRecommendations(): Promise<RecommendationResponse> {
     const response = await this.client.post<RecommendationResponse>('/api/recommend/')
@@ -61,43 +68,14 @@ class APIClient {
     return response.data
   }
 
-  // ========== Profile API ==========
+  // ── Chat History ────────────────────────────────────────────────────────────
 
-  async getProfile(): Promise<UserProfile> {
-    const response = await this.client.get<UserProfile>('/api/profile/')
+  async getChatHistory(limit: number = 50): Promise<any> {
+    const response = await this.client.get('/api/chat/history', { params: { limit } })
     return response.data
   }
 
-  async createProfile(data: FormData): Promise<UserProfile> {
-    const profileData = {
-      identity: data.identity,
-      budget_range: data.budget,
-      preferences: {
-        room_types: data.roomTypes,
-        priorities: data.priorities,
-        additional_info: data.additionalInfo,
-      },
-    }
-    const response = await this.client.post<UserProfile>('/api/profile/', profileData)
-    return response.data
-  }
-
-  async updateProfile(data: Partial<FormData>): Promise<UserProfile> {
-    const profileData: any = {}
-    if (data.identity) profileData.identity = data.identity
-    if (data.budget) profileData.budget_range = data.budget
-    if (data.roomTypes || data.priorities || data.additionalInfo) {
-      profileData.preferences = {
-        room_types: data.roomTypes || [],
-        priorities: data.priorities || [],
-        additional_info: data.additionalInfo || '',
-      }
-    }
-    const response = await this.client.patch<UserProfile>('/api/profile/', profileData)
-    return response.data
-  }
-
-  // ========== Health Check ==========
+  // ── Health Check ────────────────────────────────────────────────────────────
 
   async healthCheck(): Promise<any> {
     const response = await this.client.get('/api/health')
@@ -105,5 +83,90 @@ class APIClient {
   }
 }
 
-// Export singleton instance
 export const api = new APIClient()
+
+// ─── SSE Streaming Chat (cannot use axios — requires fetch + ReadableStream) ──
+
+/**
+ * Sends a chat message and streams the response via SSE.
+ *
+ * @param message      User's message text
+ * @param onChunk      Called with each incremental text chunk as it arrives
+ * @param onDone       Called with the full assembled response when stream ends
+ * @param onError      Called if the request or stream fails
+ */
+export async function streamChatMessage(
+  message: string,
+  onChunk: (text: string) => void,
+  onDone: (fullText: string) => void,
+  onError: (error: string) => void,
+): Promise<void> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+
+  if (!DEV_MODE) {
+    const token = await getAccessToken()
+    if (token) headers['Authorization'] = `Bearer ${token}`
+  }
+
+  let fullText = ''
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ message }),
+    })
+
+    if (!response.ok) {
+      onError(`HTTP ${response.status}: ${await response.text()}`)
+      return
+    }
+
+    if (!response.body) {
+      onError('No response body')
+      return
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const payload = line.slice(6).trim()
+        if (payload === '[DONE]') {
+          onDone(fullText)
+          return
+        }
+        try {
+          const parsed = JSON.parse(payload)
+          if (parsed.error) {
+            onError(parsed.error)
+            return
+          }
+          if (parsed.text) {
+            fullText += parsed.text
+            onChunk(parsed.text)
+          }
+        } catch {
+          // skip malformed SSE line
+        }
+      }
+    }
+
+    // Stream ended without [DONE] — still call onDone
+    onDone(fullText)
+  } catch (err: any) {
+    onError(err.message || 'Network error')
+  }
+}
