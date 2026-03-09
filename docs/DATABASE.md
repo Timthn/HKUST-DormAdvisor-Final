@@ -525,29 +525,10 @@ psql -h <supabase-host> -U postgres -d postgres < backup.sql
 
 ---
 
-## 性能优化建议
-
-1. **合理使用索引**: 已为常用查询字段创建索引
-2. **JSONB 查询优化**: 对频繁查询的 JSONB 字段创建 GIN 索引
-   ```sql
-   CREATE INDEX idx_form_preferences_gin ON profiles USING GIN (form_preferences);
-   ```
-3. **定期清理旧数据**: 考虑归档超过 6 个月的聊天记录
-4. **监控慢查询**: 使用 Supabase Dashboard 的性能监控
+#
 
 ---
 
-## 未来扩展
-
-根据 FSD 规划，可能需要添加：
-
-1. **sessions 表**: 存储多会话管理
-2. **recommendations 表**: 持久化推荐结果
-3. **hall_reviews 表**: 用户评价和反馈
-4. **notifications 表**: 通知系统
 
 ---
 
-## 联系方式
-
-如有数据库相关问题，请联系项目负责人或提交 GitHub Issue。

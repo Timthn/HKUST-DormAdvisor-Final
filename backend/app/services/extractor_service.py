@@ -21,7 +21,7 @@ Focus on signals such as:
 - Desire for single vs. multi-occupancy based on conversation tone
 - Any specific facilities or location concerns mentioned casually
 
-Output ONLY a concise English paragraph (maximum 150 words). 
+Output ONLY a concise English paragraph (maximum 50 words). 
 Do NOT use bullet points, JSON, or markdown. Plain prose only.
 If no strong signals are present, write: "No strong hidden preferences identified yet." """
 
