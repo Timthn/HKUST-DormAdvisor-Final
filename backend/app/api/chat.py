@@ -2,14 +2,132 @@
 Chat API Endpoints
 Handles chat interactions with AI advisor
 """
+import asyncio
+import json
+import re
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from app.models.schemas import ChatMessage, ChatResponse
 from app.middleware.auth import get_current_user_id
 from app.services.bailian_service import get_chat_bailian_service
 from app.database.supabase_client import get_supabase, get_dev_storage
-from datetime import datetime
 
 router = APIRouter()
+
+
+def _fetch_profile(supabase, user_id: str) -> dict:
+    if supabase:
+        try:
+            resp = supabase.table('profiles').select('*').eq('user_id', user_id).single().execute()
+            if resp.data:
+                return resp.data
+        except Exception:
+            pass
+    return {
+        'identity': 'Undergraduate (Dev)',
+        'budget_range': 'HK$ 15000 - 20000',
+        'preferences': {'room_types': ['Single Room'], 'priorities': ['Price']},
+    }
+
+
+def _build_context_prompt(profile: dict, user_message: str) -> str:
+    fp = profile.get('form_preferences') or {}
+    identity = fp.get('identity') or profile.get('identity', 'Student')
+    budget = fp.get('budget_range') or profile.get('budget_range', 'Not specified')
+    preferences = fp.get('priorities') or profile.get('preferences', {})
+    return (
+        f"[User Context]\n- Identity: {identity}\n- Budget: {budget}\n- Preferences: {preferences}\n\n"
+        f"[User Question]\n{user_message}\n\n"
+        f"Please provide a helpful response based on the user's context and question."
+    )
+
+
+def _strip_footnote_references(text: str) -> str:
+    """Remove Bailian-style footnote refs: [^0], [^1], ... and definition lines [^n]: [title](url)."""
+    if not text or not text.strip():
+        return text
+    # Remove footnote definition lines (e.g. [^0]: [香港科技大学...](https://...))
+    text = re.sub(r"\n?\s*\[\^[0-9]+\]:\s*[^\n]*(?=\n|$)", "", text)
+    # Remove inline markers [^0], [^1], etc.
+    text = re.sub(r"\[\^[0-9]+\]", "", text)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def _get_recent_chat_messages(supabase, user_id: str, limit: int = 10) -> list:
+    """Fetch recent chat_logs for user (chronological order) for multi-turn context. Returns list of {role, content}."""
+    if not supabase:
+        return []
+    try:
+        rows = (
+            supabase.table("chat_logs")
+            .select("id, created_at, role, content")
+            .eq("user_id", user_id)
+            .order("created_at", desc=False)
+            .limit(limit)
+            .execute()
+        )
+        if not rows.data:
+            return []
+        # Same-turn rows share created_at; sort by id so user (inserted first) comes before assistant
+        ordered = sorted(rows.data, key=lambda r: (r.get("created_at") or "", r.get("id") or 0))
+        return [{"role": r["role"], "content": (r.get("content") or "").strip()} for r in ordered]
+    except Exception:
+        return []
+
+
+@router.post("/stream")
+async def stream_chat_message(
+    message: ChatMessage,
+    user_id: str = Depends(get_current_user_id),
+):
+    """Stream chat via SSE. Uses recent chat_logs for multi-turn context, then writes user + assistant (two INSERTs)."""
+    bailian = get_chat_bailian_service()
+    supabase = get_supabase()
+    profile = _fetch_profile(supabase, user_id)
+    context_prompt = _build_context_prompt(profile, message.message)
+
+    # Multi-turn: fetch chat_logs → history (list of {role, content}) → append new user query → send to Bailian
+    history = _get_recent_chat_messages(supabase, user_id, limit=10)
+    msgs = history + [{"role": "user", "content": context_prompt}]
+    print(f"[stream] Sending to Bailian: {len(history)} history + 1 current = {len(msgs)} messages")
+
+    turn_ts = datetime.now(timezone.utc).isoformat()
+
+    if supabase:
+        try:
+            supabase.table('chat_logs').insert({
+                'user_id': user_id, 'role': 'user', 'content': message.message, 'created_at': turn_ts,
+            }).execute()
+        except Exception as e:
+            print(f"[stream] Failed to save user message: {e}")
+
+    async def event_stream():
+        full_text = ""
+        try:
+            async for chunk in bailian.stream_message(msgs):
+                full_text += chunk
+                yield f"data: {json.dumps({'text': chunk})}\n\n"
+                await asyncio.sleep(0)
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            return
+        finally:
+            if supabase and full_text:
+                try:
+                    clean_text = _strip_footnote_references(full_text)
+                    supabase.table('chat_logs').insert({
+                        'user_id': user_id, 'role': 'assistant', 'content': clean_text, 'created_at': turn_ts,
+                    }).execute()
+                except Exception as e:
+                    print(f"[stream] Failed to save assistant response: {e}")
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.post("/", response_model=ChatResponse)
@@ -17,102 +135,31 @@ async def send_chat_message(
     message: ChatMessage,
     user_id: str = Depends(get_current_user_id)
 ):
-    """
-    Send a chat message and get AI response
-    
-    Flow:
-    1. Verify user authentication (via Depends)# ########## This may need to changed to supabase auth
-    2. Fetch user profile from Supabase
-    3. Fetch recent chat history
-    4. Construct context-aware prompt # ########## This may need to changed to supabase auth
-    5. Call Bailian API # ########## This may need to changed to supabase auth
-    6. Store user message and AI response in database # ########## This may need to changed to supabase auth
-    7. Return AI response # ########## This may need to changed to supabase auth
-    """
+    """Non-streaming chat. Uses same multi-turn history as /stream."""
     bailian = get_chat_bailian_service()
     supabase = get_supabase()
-    
+
     try:
-        # Step 1: Get profile context (Use provided context if available, otherwise fetch from DB)
-        if message.context:
-            # Context provided by frontend (e.g. Guest mode)
-            profile = message.context
-            
-            # For guests, we don't have stored history
-            history = []
-        elif supabase:
-            # Authenticated user - fetch from Supabase
-            try:
-                profile_response = supabase.table('profiles').select('*').eq('id', user_id).single().execute()
-                profile = profile_response.data
-            except Exception:
-                profile = {}
-            
-            # Step 2: Fetch recent chat history (last 10 messages)
-            try:
-                history_response = supabase.table('chat_logs').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(10).execute()
-                history = history_response.data
-            except Exception:
-                history = []
-        else:
-            # Dev mode fallback
-            # ... existing dev mode logic ...
-            storage = get_dev_storage()
-            profile = storage.get(user_id, {})
-            # ...
-            history = []
-        
-        if not profile:
-             # Fallback mock data if not found in RAM
-            profile = {
-                'identity': 'Undergraduate (Dev)',
-                'budget_range': 'HK$ 5000 - 7000',
-                'preferences': {'room_types': ['Single Room'], 'priorities': ['Price']}
-            }
+        profile = _fetch_profile(supabase, user_id)
+        context_prompt = _build_context_prompt(profile, message.message)
+        history = _get_recent_chat_messages(supabase, user_id, limit=10)
+        messages = history + [{"role": "user", "content": context_prompt}]
 
-        # Step 3: Build context
-        identity = profile.get('identity', 'Student')
-        budget = profile.get('budget_range', 'Not specified')
-        preferences = profile.get('preferences', {})
-        
-        context_prompt = f"""
-[User Context]
-- Identity: {identity}
-- Budget: {budget}
-- Preferences: {preferences}
-
-[User Question]
-{message.message}
-
-Please provide a helpful response based on the user's context and question.
-"""
-        
-        # Step 4: Call Bailian API
-        messages = [{"role": "user", "content": context_prompt}]
         ai_response = await bailian.send_message(messages)
-        
+        ai_response = _strip_footnote_references(ai_response)
+
         # Step 5: Store chat logs
         if supabase:
             timestamp = datetime.now().isoformat()
-            
-            # Store user message
             supabase.table('chat_logs').insert({
-                'user_id': user_id,
-                'role': 'user',
-                'content': message.message,
-                'created_at': timestamp
+                'user_id': user_id, 'role': 'user', 'content': message.message, 'created_at': timestamp
             }).execute()
-            
-            # Store AI response
             supabase.table('chat_logs').insert({
-                'user_id': user_id,
-                'role': 'assistant',
-                'content': ai_response,
-                'created_at': timestamp
+                'user_id': user_id, 'role': 'assistant', 'content': ai_response, 'created_at': timestamp
             }).execute()
         else:
             print(f"[DEV_MODE] Skipping DB log: User: {message.message} -> AI: {ai_response[:50]}...")
-        
+
         # Step 6: Return response
         return ChatResponse(
             answer=ai_response,
@@ -144,6 +191,8 @@ async def get_chat_history(
     
     try:
         response = supabase.table('chat_logs').select('*').eq('user_id', user_id).order('created_at', desc=False).limit(limit).execute()
-        return {"messages": response.data}
+        # Same-turn user/assistant share created_at; sort by id so user (inserted first) comes before assistant
+        messages = sorted(response.data or [], key=lambda r: (r.get('created_at') or '', r.get('id') or 0))
+        return {"messages": messages}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch chat history: {str(e)}")

@@ -1,14 +1,25 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import ChatPanel from '@/components/ChatPanel'
 import RecommendationPanel from '@/components/RecommendationPanel'
 import FacilitiesModal from '@/components/FacilitiesModal'
-import { api, streamChatMessage } from '@/lib/api'
+import { api, streamChatMessage, stripFootnoteRefs } from '@/lib/api'
 import { getSession, signOut } from '@/lib/supabase'
 import type { FormData, Message, HallRecommendationItem } from '@/types'
+
+/** Map API chat_logs row to Message for rendering. role 'user' -> sender 'user', role 'assistant' -> sender 'bot'. */
+function mapHistoryToMessages(rows: { id: number; role: string; content: string; created_at: string }[]): Message[] {
+  return rows.map((row) => ({
+    id: row.id,
+    sender: row.role === 'assistant' ? 'bot' : 'user',
+    text: row.content ?? '',
+    timestamp: new Date(row.created_at).getTime(),
+  }))
+}
 
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
 
@@ -86,7 +97,26 @@ export default function ChatPage() {
         additionalInfo: fp.additional_info || '',
       })
 
-      // Show welcome message with preferences summary
+      // Load chat history from DB so user/assistant render in correct bubbles (role -> sender)
+      let historyMessages: Message[] = []
+      try {
+        const { messages: rows } = await api.getChatHistory(50)
+        if (Array.isArray(rows) && rows.length > 0) {
+          historyMessages = mapHistoryToMessages(rows)
+        }
+      } catch (e) {
+        console.warn('Could not load chat history:', e)
+      }
+
+      if (historyMessages.length > 0) {
+        setMessages(historyMessages)
+        if (profile.last_recommendation?.length) {
+          setRecommendations(profile.last_recommendation)
+        }
+        return
+      }
+
+      // No history: show welcome and recommendations
       const welcomeText = [
         "Hello! I've received your preferences 🎯\n",
         `Identity: ${fp.identity || '—'}`,
@@ -99,7 +129,6 @@ export default function ChatPage() {
 
       setMessages([{ id: Date.now(), sender: 'bot', text: welcomeText, timestamp: Date.now() }])
 
-      // If last_recommendation exists → use it; otherwise generate fresh
       if (profile.last_recommendation && profile.last_recommendation.length > 0) {
         setRecommendations(profile.last_recommendation)
         setMessages(prev => [...prev, {
@@ -147,9 +176,13 @@ export default function ChatPage() {
     const userText = inputText
     setInputText('')
 
-    // Add user message
+    // Use negative ids for in-session messages so they never collide with history (DB ids are 1,2,3,...)
+    const userMsgId = -Date.now()
+    const botMsgId = userMsgId - 1
+    streamingMsgIdRef.current = botMsgId
+
     setMessages(prev => [...prev, {
-      id: Date.now(),
+      id: userMsgId,
       sender: 'user',
       text: userText,
       timestamp: Date.now(),
@@ -157,9 +190,6 @@ export default function ChatPage() {
 
     setIsTyping(true)
 
-    // Add an empty bot placeholder message that we will update in-place
-    const botMsgId = Date.now() + 1
-    streamingMsgIdRef.current = botMsgId
     setMessages(prev => [...prev, {
       id: botMsgId,
       sender: 'bot',
@@ -169,14 +199,20 @@ export default function ChatPage() {
 
     await streamChatMessage(
       userText,
-      // onChunk: append each text fragment to the placeholder message
+      // onChunk: append each fragment and flush so user sees streamed output
       (chunk) => {
-        setMessages(prev => prev.map(m =>
-          m.id === botMsgId ? { ...m, text: m.text + chunk } : m
-        ))
+        flushSync(() => {
+          setMessages(prev => prev.map(m =>
+            m.id === botMsgId ? { ...m, text: m.text + chunk } : m
+          ))
+        })
       },
-      // onDone: streaming finished — nothing extra to do (text already in state)
-      (_fullText) => {
+      // onDone: replace bot message with cleaned text (strip [^0] refs and footnote definitions)
+      (fullText) => {
+        const cleaned = stripFootnoteRefs(fullText)
+        setMessages(prev => prev.map(m =>
+          m.id === botMsgId ? { ...m, text: cleaned } : m
+        ))
         setIsTyping(false)
         streamingMsgIdRef.current = null
       },

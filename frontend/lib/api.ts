@@ -85,6 +85,16 @@ class APIClient {
 
 export const api = new APIClient()
 
+/** Remove Bailian footnote refs [^0], [^1] and definition lines [^n]: [title](url) for display. */
+export function stripFootnoteRefs(text: string): string {
+  if (!text?.trim()) return text
+  // Remove footnote definition lines: [^0]: [title](url) or [^0]: ...
+  let out = text.replace(/\n?\s*\[\^[0-9]+\]:\s*[^\n]*(?=\n|$)/g, '')
+  // Remove inline markers [^0], [^1], ...
+  out = out.replace(/\[\^[0-9]+\]/g, '')
+  return out.replace(/\n{3,}/g, '\n\n').trim()
+}
+
 // ─── SSE Streaming Chat (cannot use axios — requires fetch + ReadableStream) ──
 
 /**
