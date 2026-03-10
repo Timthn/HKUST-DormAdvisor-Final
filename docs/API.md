@@ -52,8 +52,9 @@ data: {"error": "错误描述"}
 ```
 
 **说明**:
+- **多轮对话**：后端从 `chat_logs` 读取该用户最近 10 条消息（按 `created_at`、`id` 排序），与当前轮的 context（用户身份/预算/偏好 + 用户问题）一起组成 `messages` 发送给百炼，因此“再说多一点”等追问会带上文。
 - 用户消息在流式传输**开始前**插入 `chat_logs`
-- AI 完整回复在流式传输**结束后**插入 `chat_logs`
+- AI 完整回复在流式传输**结束后**经过去除脚注引用（如 `[^0]`）再插入 `chat_logs`
 - 后端自动处理 `memory_id` 懒初始化（首次对话时调用 Bailian CreateMemory API）
 
 **状态码**:
@@ -65,7 +66,7 @@ data: {"error": "错误描述"}
 
 ### GET /api/chat/history
 
-获取用户的聊天历史记录。
+获取用户的聊天历史记录。消息按 `created_at`、`id` 升序返回，保证同一轮 user/assistant 顺序正确（刷新页面后历史顺序与对话一致）。
 
 **Query Parameters**:
 - `limit` (可选): 返回的消息数量，默认 50

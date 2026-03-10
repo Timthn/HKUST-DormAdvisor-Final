@@ -38,8 +38,7 @@ def _build_context_prompt(profile: dict, user_message: str) -> str:
     preferences = fp.get('priorities') or profile.get('preferences', {})
     return (
         f"[User Context]\n- Identity: {identity}\n- Budget: {budget}\n- Preferences: {preferences}\n\n"
-        f"[User Question]\n{user_message}\n\n"
-        f"Please provide a helpful response based on the user's context and question."
+        f"[User Question]\n{user_message}"
     )
 
 

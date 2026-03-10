@@ -5,11 +5,12 @@ Next.js 前端应用，为 HKUST 宿舍推荐系统提供用户界面。
 ## 技术栈
 
 - **Framework**: Next.js 14+ (App Router)
-- **UI Library**: React 19
+- **UI Library**: React 18
 - **Styling**: Tailwind CSS
 - **Authentication**: Supabase Auth
 - **State Management**: React Hooks
 - **HTTP Client**: Axios
+- **Markdown**: react-markdown, remark-gfm（聊天消息渲染表格与格式）
 - **Language**: TypeScript
 
 ## 项目结构
@@ -140,7 +141,7 @@ npm start
 - 优先考虑因素
 
 ### ChatPanel
-聊天界面，用户与 AI 顾问对话。
+聊天界面，用户与 AI 顾问对话。Bot 回复使用 react-markdown + remark-gfm 渲染，支持表格、粗体、列表等。Next.js 需在 `next.config.js` 中配置 `transpilePackages: ['react-markdown', 'remark-gfm']`。
 
 ### RecommendationPanel
 显示 AI 推荐的宿舍及详情，支持动态更新偏好。

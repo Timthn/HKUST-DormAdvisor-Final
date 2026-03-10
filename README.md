@@ -62,6 +62,7 @@ An intelligent dormitory recommendation system that leverages AI technology to p
 - **图标 Icons**: Lucide React
 - **HTTP 客户端 Client**: Axios 1.6
 - **认证 Auth**: Supabase Auth
+- **Markdown 渲染 Markdown**: react-markdown + remark-gfm（聊天回复支持表格、粗体等）
 - **部署 Deployment**: Vercel
 
 ### 后端 | Backend
@@ -395,7 +396,8 @@ node_modules/ (下载并安装数百个包)
 - TypeScript 5.8
 - Tailwind CSS 3.4
 - Supabase 客户端库
-- Axios, Lucide React 等
+- Axios, Lucide React
+- react-markdown, remark-gfm（聊天 Markdown 与表格渲染）
 
 **📝 说明 | Note:**
 - **`package.json`**: 定义项目直接需要的 7 个依赖
@@ -622,7 +624,7 @@ npm run build
 ### 请求流程 | Request Flow
 
 1. **用户登录 | User Login**: 前端 → Supabase Auth → JWT Token → 前端
-2. **聊天消息 | Chat (SSE)**: 前端 → `POST /api/chat/stream` → Bailian Chat Agent → SSE 流式返回 → 前端实时渲染；AI 回复结束后写入 `chat_logs`
+2. **聊天消息 | Chat (SSE)**: 前端 → `POST /api/chat/stream` → 后端从 `chat_logs` 取最近 10 条作为多轮历史 → 与当前用户问题一并送 Bailian Chat Agent → SSE 流式返回 → 前端用 react-markdown 渲染（表格、粗体等）；用户消息与 AI 回复写入 `chat_logs`
 3. **Extractor（后台）**: 每 20 条用户消息后自动触发 → DeepSeek API 分析对话 → 更新 `profiles.inferred_preferences`
 4. **生成推荐 | Recommendations**: `POST /api/recommend/` → 读取 `form_preferences` + `inferred_preferences` → Bailian Recommend Agent → 查 `halls` 表补全信息 → 写入 `profiles.last_recommendation` → 返回前端
 5. **保存偏好 | Save Prefs**: 前端 SetupForm → `POST /api/profile/` → 更新 `profiles.form_preferences`（UPDATE only，行由 DB Trigger 创建）
@@ -636,6 +638,8 @@ npm run build
 - [x] 用户认证（Supabase Auth）| User Authentication
 - [x] 用户偏好设置（form_preferences）| User Preferences via SetupForm
 - [x] AI 流式聊天（SSE StreamingResponse）| Streaming AI Chat
+- [x] 多轮对话（最近 10 条历史送 Bailian）| Multi-turn Chat with History
+- [x] 聊天回复 Markdown 渲染（表格、粗体、列表）| Markdown Rendering in Chat
 - [x] Bailian 长期记忆（memory_id 懒初始化）| Long-term Memory
 - [x] Extractor 模块（DeepSeek 隐性偏好分析）| Hidden Preference Extraction
 - [x] 宿舍推荐（双 Agent 架构）| Dormitory Recommendations
@@ -647,7 +651,7 @@ npm run build
 ### 🚧 规划中 | Planned (from TODO.md)
 
 - [ ] RAG 知识库检索 | RAG Knowledge Base
-- [ ] 多会话聊天历史 | Multi-session History
+- [ ] 多会话聊天历史 | Multi-session History（当前已支持单用户多轮对话与历史持久化）
 - [ ] 推荐结果持久化 | Persistent Recommendations
 - [ ] 高级用户画像 | Advanced Profiling
 - [ ] 云端聊天记录同步 | Cloud Chat Sync

@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Menu, Send, LogOut } from 'lucide-react';
 import { Message } from '@/types';
 import { BOT_AVATAR_URL } from '@/lib/constants';
@@ -73,12 +75,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 <img src={BOT_AVATAR_URL} alt="Bot" className="w-full h-full object-cover" />
               </div>
             )}
-            <div className={`max-w-[85%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-line ${
+            <div className={`max-w-[85%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
               msg.sender === 'bot' 
-                ? 'bg-white text-gray-700 rounded-tl-none border border-gray-100' 
-                : 'bg-[#2b5dad] text-white rounded-tr-none'
+                ? 'bg-white text-gray-700 rounded-tl-none border border-gray-100 chat-markdown overflow-x-auto' 
+                : 'bg-[#2b5dad] text-white rounded-tr-none whitespace-pre-line'
             }`}>
-              {msg.text}
+              {msg.sender === 'bot' ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+              ) : (
+                msg.text
+              )}
             </div>
           </div>
         ))}
