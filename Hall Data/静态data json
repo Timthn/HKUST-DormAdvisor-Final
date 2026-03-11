@@ -1,0 +1,162 @@
+[
+  {
+    "hall_id": "1",
+    "name": "UG Hall I",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/hall-i-1-banner.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$19,460",
+        "continuing_local":      "Double: HK$19,460",
+        "new_non_local":          "Double: HK$25,168",
+        "continuing_non_local":  "Double: HK$24,464"
+      },
+      "available_room_types": ["Double"],
+      "facilities": ["Common Room (TV, fridge, microwave)", "Pantry", "Shared Bathroom", "Laundry (shared with SKCC Hall)"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall1"
+    }
+  },
+  {
+    "hall_id": "2",
+    "name": "UG Hall II",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-03/hall-ii-2-banner2.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$19,460 | Triple: HK$15,012",
+        "continuing_local":      "Double: HK$19,460 | Triple: HK$15,012",
+        "new_non_local":          "Double: HK$25,168 | Triple: HK$19,162",
+        "continuing_non_local":  "Double: HK$24,464 | Triple: HK$18,626"
+      },
+      "available_room_types": ["Double", "Triple"],
+      "facilities": ["Common Room (TV, fridge, microwave)", "Pantry (fridge, microwave, water dispenser)", "Shared Bathroom", "Laundry"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall2"
+    }
+  },
+  {
+    "hall_id": "3",
+    "name": "UG Hall III",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/hall_iii-3-banner.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$19,460 | Triple: HK$15,012",
+        "continuing_local":      "Double: HK$19,460 | Triple: HK$15,012",
+        "new_non_local":          "Double: HK$25,168 | Triple: HK$19,162",
+        "continuing_non_local":  "Double: HK$24,464 | Triple: HK$18,626"
+      },
+      "available_room_types": ["Double", "Triple"],
+      "facilities": ["Common Room (induction cooker, microwave, TV, balcony)", "Pantry", "Shared Bathroom", "Laundry", "Table Tennis Table", "Printer"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall3"
+    }
+  },
+  {
+    "hall_id": "4",
+    "name": "UG Hall IV",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/halliv-4-banner.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$19,460 | Triple: HK$15,012",
+        "continuing_local":      "Double: HK$19,460 | Triple: HK$15,012",
+        "new_non_local":          "Double: HK$25,168 | Triple: HK$19,162",
+        "continuing_non_local":  "Double: HK$24,464 | Triple: HK$18,626"
+      },
+      "available_room_types": ["Double", "Triple"],
+      "facilities": ["Common Room (sea view, balcony, induction cooker)", "Pantry", "Shared Bathroom", "Laundry"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall4"
+    }
+  },
+  {
+    "hall_id": "5",
+    "name": "UG Hall V",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-03/hallv-5banner.jpg",
+      "price_info": {
+        "new_local":              "Bunk Bed: HK$15,568",
+        "continuing_local":      "Bunk Bed: HK$15,568",
+        "new_non_local":          "Bunk Bed: HK$20,306",
+        "continuing_non_local":  "Bunk Bed: HK$19,738"
+      },
+      "available_room_types": ["Bunk Bed"],
+      "facilities": ["Common Room (induction cooker, microwave, drinking water)", "Pantry", "Shared Bathroom (in-room washbasin)", "Laundry", "Vending Machines (G/F)"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall5"
+    }
+  },
+  {
+    "hall_id": "6",
+    "name": "UG Hall VI",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/hallvi-6-banner.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$19,460 | Triple: HK$15,012",
+        "continuing_local":      "Double: HK$19,460 | Triple: HK$15,012",
+        "new_non_local":          "Double: HK$25,168 | Triple: HK$19,162",
+        "continuing_non_local":  "Double: HK$24,464 | Triple: HK$18,626"
+      },
+      "available_room_types": ["Double", "Triple"],
+      "facilities": ["Common Room (2 induction cookers, 2 microwaves, sea-view balcony)", "In-room Washbasin", "Shared Bathroom", "Laundry", "Wireless Printer (G/F)"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall6"
+    }
+  },
+  {
+    "hall_id": "7",
+    "name": "Chan Sui Kau & Chan Lam Moon Chun Hall (UG Hall VII)",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/hallvii-7-banner.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$23,630",
+        "continuing_local":      "Single: HK$34,472 | Double: HK$23,630",
+        "new_non_local":          "Double: HK$30,888",
+        "continuing_non_local":  "Single: HK$44,202 | Double: HK$30,024"
+      },
+      "available_room_types": ["Double", "Single"],
+      "facilities": ["En-suite Bathroom (shared by 2 for single / 4 for double)", "2 Common Rooms per floor", "Music Room (7/F: pianos, drums, keyboard)", "Meeting Room & Study Room per floor", "Laundry"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall7"
+    }
+  },
+  {
+    "hall_id": "8",
+    "name": "Lo Ka Chung Hall (UG Hall VIII)",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/hallviii-8-banner.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$23,630",
+        "continuing_local":      "Single: HK$35,028 | Double: HK$23,630",
+        "new_non_local":          "Double: HK$30,888",
+        "continuing_non_local":  "Single: HK$44,480 | Double: HK$30,024"
+      },
+      "available_room_types": ["Double", "Single"],
+      "facilities": ["En-suite Bathroom (shared by 4 for double / suite for single)", "Common Room", "Gym (G/F)", "24-Hour Study Room (shared with Hall IX)", "Laundry"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall8"
+    }
+  },
+  {
+    "hall_id": "9",
+    "name": "UG Hall IX",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/hall-ix-9-banner.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$23,630",
+        "continuing_local":      "Single: HK$35,028 | Double: HK$23,630",
+        "new_non_local":          "Double: HK$30,888",
+        "continuing_non_local":  "Single: HK$44,480 | Double: HK$30,024"
+      },
+      "available_room_types": ["Double", "Single"],
+      "facilities": ["En-suite Bathroom (shared by 4 for double / suite for single)", "Common Room", "24-Hour Study Room (shared with Hall VIII)", "Laundry"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall9"
+    }
+  },
+  {
+    "hall_id": "JCH",
+    "name": "Jockey Club Hall (JCH)",
+    "static_info": {
+      "image_url": "https://shrl.hkust.edu.hk/sites/default/files/2024-02/jockeyclub-banner1.jpg",
+      "price_info": {
+        "new_local":              "Double: HK$25,576",
+        "continuing_local":      "Double: HK$25,576",
+        "new_non_local":          "Double: HK$33,462",
+        "continuing_non_local":  "Double: HK$32,526"
+      },
+      "available_room_types": ["Double"],
+      "facilities": ["Furnished Living Room (sofa, dining table, fridge, microwave) per apartment", "Study Room & Kiosk", "Shared Bathroom per apartment", "Laundry", "Basketball Court", "Sky Garden & Fitness Room"],
+      "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall-jch"
+    }
+  }
+]
