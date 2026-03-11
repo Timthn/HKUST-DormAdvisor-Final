@@ -251,6 +251,32 @@ export default function ChatPage() {
     }
   }
 
+  // ── Refresh recommendations (keep form & list; don't clear before request) ──
+  const handleRefreshRecommendations = async () => {
+    setIsAnalyzing(true)
+    try {
+      await api.saveProfile(formData)
+      const result = await api.generateRecommendations()
+      setRecommendations(result.recommendations || [])
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        sender: 'bot',
+        text: "Recommendations refreshed. Check the right panel! 👉",
+        timestamp: Date.now(),
+      }])
+    } catch (error) {
+      console.error('Failed to refresh recommendations:', error)
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        sender: 'bot',
+        text: "Could not refresh recommendations. The list on the right is unchanged. Please try again.",
+        timestamp: Date.now(),
+      }])
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
   // ── Logout ──────────────────────────────────────────────────────────────────
   const handleLogout = async () => {
     await signOut()
@@ -280,6 +306,7 @@ export default function ChatPage() {
         isAnalyzing={isAnalyzing}
         onShowFacilities={(hall) => setModalHall(hall)}
         onResubmit={handleResubmitAnalysis}
+        onRefresh={handleRefreshRecommendations}
       />
     </div>
   )

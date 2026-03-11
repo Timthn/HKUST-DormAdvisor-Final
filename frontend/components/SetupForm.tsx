@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { MessageSquare, ChevronDown, Plus, X, ArrowLeft } from 'lucide-react'
+import { MessageSquare, ChevronDown, ArrowLeft } from 'lucide-react'
 import type { FormData, Identity, Gender, BudgetOption, RoomType } from '@/types'
 
 interface SetupFormProps {
@@ -28,6 +28,15 @@ const BUDGET_OPTIONS: BudgetOption[] = [
 
 const ROOM_TYPE_OPTIONS: RoomType[] = ['Single Room', 'Double Room', 'Triple Room']
 
+const PRIORITY_OPTIONS = [
+  'Quiet',
+  'Convenience',
+  'Price',
+  'Social',
+  'Sea view',
+  'Facilities',
+] as const
+
 export default function SetupForm({ onStart, onBack, existingData }: SetupFormProps) {
   const [formData, setFormData] = useState<FormData>(
     existingData || {
@@ -39,7 +48,6 @@ export default function SetupForm({ onStart, onBack, existingData }: SetupFormPr
       additionalInfo: '',
     }
   )
-  const [customPriority, setCustomPriority] = useState('')
 
   const toggleRoomType = (type: RoomType) => {
     setFormData(prev => ({
@@ -48,13 +56,6 @@ export default function SetupForm({ onStart, onBack, existingData }: SetupFormPr
         ? prev.roomTypes.filter(t => t !== type)
         : [...prev.roomTypes, type],
     }))
-  }
-
-  const addPriority = () => {
-    if (customPriority.trim()) {
-      setFormData(prev => ({ ...prev, priorities: [...prev.priorities, customPriority.trim()] }))
-      setCustomPriority('')
-    }
   }
 
   return (
@@ -154,25 +155,30 @@ export default function SetupForm({ onStart, onBack, existingData }: SetupFormPr
               Priority Factors <span className="text-gray-400 font-normal ml-1">Optional</span>
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
-              {formData.priorities.map((p, idx) => (
-                <span key={idx} className="bg-orange-50 text-orange-700 border border-orange-100 px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2">
-                  {p}
-                  <X size={14} className="cursor-pointer hover:text-orange-900" onClick={() => setFormData(prev => ({ ...prev, priorities: prev.priorities.filter((_, i) => i !== idx) }))} />
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={customPriority}
-                onChange={(e) => setCustomPriority(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') addPriority() }}
-                placeholder="e.g., Quiet, Near Gym..."
-                className="flex-1 bg-gray-50 text-gray-800 rounded-xl p-3.5 outline-none focus:ring-2 focus:ring-[#003366]/20 border border-gray-200 transition-all"
-              />
-              <button onClick={addPriority} className="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl px-4 flex items-center justify-center border border-gray-200 transition-colors">
-                <Plus size={20} />
-              </button>
+              {PRIORITY_OPTIONS.map(opt => {
+                const selected = formData.priorities.includes(opt)
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        priorities: selected
+                          ? prev.priorities.filter(p => p !== opt)
+                          : [...prev.priorities, opt],
+                      }))
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
+                      selected
+                        ? 'bg-orange-100 text-orange-800 border-orange-300'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                )
+              })}
             </div>
           </div>
 

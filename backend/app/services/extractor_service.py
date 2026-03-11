@@ -1,7 +1,7 @@
 """
 Extractor Service
 Analyses chat history to infer hidden user preferences using DeepSeek.
-Triggered asynchronously from chat.py after every 20th user message.
+Triggered asynchronously from chat.py after every 5 completed turns (user question + assistant answer).
 """
 import os
 from dotenv import load_dotenv
@@ -21,15 +21,35 @@ Focus on signals such as:
 - Desire for single vs. multi-occupancy based on conversation tone
 - Any specific facilities or location concerns mentioned casually
 
-Output ONLY a concise English paragraph (maximum 50 words). 
-Do NOT use bullet points, JSON, or markdown. Plain prose only.
-If no strong signals are present, write: "No strong hidden preferences identified yet." """
+Here are examples of the style and level of detail you should produce:
+
+Example 1
+Conversation:
+User: I usually study until 2am and need my room to stay very quiet at night.
+Assistant: Understood. I'll focus on halls that are quieter after midnight.
+Hidden preference summary: The student is a night owl who needs a very quiet environment late at night and is sensitive to noise while studying.
+
+Example 2
+Conversation:
+User: I don't mind sharing a room, I just want to be close to the sports centre and gym.
+Assistant: Got it — proximity to sports facilities is important for you.
+Hidden preference summary: The student is comfortable with shared rooms but strongly prefers a hall close to sports facilities and is likely to use them frequently.
+
+Example 3
+Conversation:
+User: I like chatting with floor mates in the common room, I don't want a place that feels too isolated.
+Assistant: So a more social hall with active common areas might fit you well.
+Hidden preference summary: The student values an active, social hall environment with common spaces where they can regularly interact with other residents.
+
+When you answer for a new conversation, output ONLY one concise English paragraph (maximum 50 words) similar to the 'Hidden preference summary' lines above.
+Do NOT use bullet points, JSON, labels, or markdown. Plain prose only.
+If no strong signals are present, write exactly: "No strong hidden preferences identified yet." """
 
 
 async def run_extractor(user_id: str) -> None:
     """
     Entry point called as an asyncio background task from chat.py.
-    Fetches last 20 messages, calls DeepSeek, updates profiles.inferred_preferences.
+    Fetches the last 5 turns (≈10 chat messages), calls DeepSeek, updates profiles.inferred_preferences.
     """
     supabase = get_supabase()
     api_key = os.getenv("DEEPSEEK_API_KEY")
@@ -38,14 +58,14 @@ async def run_extractor(user_id: str) -> None:
         print("[extractor] DEEPSEEK_API_KEY not set, skipping.")
         return
 
-    # Fetch last 20 messages (most recent first, then reverse for chronological order)
+    # Fetch last 10 messages (≈5 turns, most recent first, then reverse for chronological order)
     try:
         resp = (
             supabase.table('chat_logs')
             .select('role, content')
             .eq('user_id', user_id)
             .order('created_at', desc=True)
-            .limit(20)
+            .limit(10)
             .execute()
         )
         messages_raw = list(reversed(resp.data or []))

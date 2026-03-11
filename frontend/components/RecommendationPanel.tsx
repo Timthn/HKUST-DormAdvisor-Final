@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Sparkles, Settings, ChevronDown, ChevronRight, Plus, X, RefreshCw } from 'lucide-react'
+import { Sparkles, Settings, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 import type { HallRecommendationItem, FormData, RoomType, BudgetOption, Identity, Gender } from '@/types'
 
 const IDENTITY_OPTIONS: Identity[] = [
@@ -19,6 +19,15 @@ const BUDGET_OPTIONS: BudgetOption[] = [
 ]
 const ROOM_TYPE_OPTIONS: RoomType[] = ['Single Room', 'Double Room', 'Triple Room']
 
+const PRIORITY_OPTIONS = [
+  'Quiet',
+  'Convenience',
+  'Price',
+  'Social',
+  'Sea view',
+  'Facilities',
+] as const
+
 interface RecommendationPanelProps {
   formData: FormData
   setFormData: React.Dispatch<React.SetStateAction<FormData>>
@@ -26,6 +35,7 @@ interface RecommendationPanelProps {
   isAnalyzing: boolean
   onShowFacilities: (hall: HallRecommendationItem) => void
   onResubmit: () => void
+  onRefresh?: () => void
 }
 
 export default function RecommendationPanel({
@@ -35,9 +45,8 @@ export default function RecommendationPanel({
   isAnalyzing,
   onShowFacilities,
   onResubmit,
+  onRefresh,
 }: RecommendationPanelProps) {
-  const [customPriority, setCustomPriority] = React.useState('')
-
   const toggleRoomType = (type: RoomType) => {
     setFormData(prev => ({
       ...prev,
@@ -47,23 +56,41 @@ export default function RecommendationPanel({
     }))
   }
 
-  const removePriority = (index: number) => {
-    setFormData(prev => ({ ...prev, priorities: prev.priorities.filter((_, i) => i !== index) }))
-  }
-
-  const addPriority = () => {
-    if (!customPriority.trim()) return
-    setFormData(prev => ({ ...prev, priorities: [...prev.priorities, customPriority.trim()] }))
-    setCustomPriority('')
-  }
-
   const hasRecommendations = recommendations.length > 0
 
   return (
     <div className="hidden md:flex md:w-[45%] flex-col bg-white h-full border-l border-gray-200">
       {/* Header */}
-      <header className="h-16 border-b border-gray-100 flex items-center px-6 bg-white z-10 sticky top-0">
-        <h2 className="text-[#003366] font-bold text-lg">Recommended Choices for You</h2>
+      <header className="h-16 border-b border-gray-100 flex items-center justify-between px-6 bg-white z-10 sticky top-0">
+        <div className="flex items-center gap-2">
+          <h2 className="text-[#003366] font-bold text-lg">Recommended Choices for You</h2>
+          <div className="relative group">
+            <span
+              className="w-4 h-4 flex items-center justify-center rounded-full border border-gray-300 text-[10px] text-gray-500 bg-gray-100/70 cursor-default"
+            >
+              !
+            </span>
+            <div
+              className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-normal rounded-md bg-gray-900 text-white text-[11px] leading-snug px-3 py-2 max-w-sm opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity shadow-lg z-20"
+            >
+              <p>Recommended halls are ranked by how well they fit your preferences.</p>
+              <p className="mt-2">When no perfect match exists, we show the closest alternatives.</p>
+            </div>
+          </div>
+        </div>
+        {onRefresh && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isAnalyzing}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:pointer-events-none"
+            title="Refresh recommendations"
+            aria-label="Refresh recommendations"
+          >
+            <RefreshCw size={16} className={isAnalyzing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        )}
       </header>
 
       <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
@@ -208,25 +235,30 @@ export default function RecommendationPanel({
                 <div>
                   <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Priorities</label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {formData.priorities.map((p, idx) => (
-                      <span key={idx} className="bg-orange-50 text-orange-700 border border-orange-100 px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5">
-                        {p}
-                        <X size={12} className="cursor-pointer hover:text-orange-900" onClick={() => removePriority(idx)} />
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customPriority}
-                      onChange={(e) => setCustomPriority(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') addPriority() }}
-                      placeholder="e.g., Quiet..."
-                      className="flex-1 bg-gray-50 text-gray-700 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-[#003366]/20 border border-gray-200"
-                    />
-                    <button onClick={addPriority} className="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg px-3 flex items-center justify-center border border-gray-200">
-                      <Plus size={18} />
-                    </button>
+                    {PRIORITY_OPTIONS.map(opt => {
+                      const selected = formData.priorities.includes(opt)
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              priorities: selected
+                                ? prev.priorities.filter(p => p !== opt)
+                                : [...prev.priorities, opt],
+                            }))
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                            selected
+                              ? 'bg-orange-100 text-orange-800 border-orange-300'
+                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 

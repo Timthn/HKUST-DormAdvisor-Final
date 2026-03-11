@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from app.models.schemas import ChatMessage, ChatResponse
 from app.middleware.auth import get_current_user_id
 from app.services.bailian_service import get_chat_bailian_service
+from app.services.extractor_service import run_extractor
 from app.database.supabase_client import get_supabase, get_dev_storage
 
 router = APIRouter()
@@ -75,6 +76,31 @@ def _get_recent_chat_messages(supabase, user_id: str, limit: int = 10) -> list:
         return []
 
 
+def _maybe_schedule_extractor(supabase, user_id: str) -> None:
+    """
+    Trigger DeepSeek extractor as a background task every 5 completed turns
+    (user question + assistant answer) for the given user.
+    We approximate turn count by the number of assistant messages.
+    """
+    if not supabase:
+        return
+    try:
+        resp = (
+            supabase.table("chat_logs")
+            .select("id", count="exact")
+            .eq("user_id", user_id)
+            .eq("role", "assistant")
+            .execute()
+        )
+        total_assistant_msgs = getattr(resp, "count", None)
+        if not isinstance(total_assistant_msgs, int):
+            return
+        if total_assistant_msgs % 5 == 0 and total_assistant_msgs > 0:
+            asyncio.create_task(run_extractor(user_id))
+    except Exception as e:
+        print(f"[extractor-trigger] Failed to schedule extractor: {e}")
+
+
 @router.post("/stream")
 async def stream_chat_message(
     message: ChatMessage,
@@ -119,6 +145,7 @@ async def stream_chat_message(
                     supabase.table('chat_logs').insert({
                         'user_id': user_id, 'role': 'assistant', 'content': clean_text, 'created_at': turn_ts,
                     }).execute()
+                    _maybe_schedule_extractor(supabase, user_id)
                 except Exception as e:
                     print(f"[stream] Failed to save assistant response: {e}")
 
@@ -156,6 +183,7 @@ async def send_chat_message(
             supabase.table('chat_logs').insert({
                 'user_id': user_id, 'role': 'assistant', 'content': ai_response, 'created_at': timestamp
             }).execute()
+            _maybe_schedule_extractor(supabase, user_id)
         else:
             print(f"[DEV_MODE] Skipping DB log: User: {message.message} -> AI: {ai_response[:50]}...")
 

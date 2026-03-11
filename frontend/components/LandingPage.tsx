@@ -4,7 +4,20 @@ import React, { useState } from 'react'
 import { Home, ShieldCheck, X, User, Lock, Mail, CheckCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { BACKGROUND_IMAGE } from '@/lib/constants'
 import { signInWithEmail, signUpWithEmail } from '@/lib/supabase'
+import { api } from '@/lib/api'
+import type { UserProfile } from '@/types'
 import { useRouter } from 'next/navigation'
+
+function hasFormPreferences(profile: UserProfile): boolean {
+  const fp = profile?.form_preferences
+  if (!fp) return false
+  return (
+    (fp.identity != null && fp.identity !== '') ||
+    (fp.budget_range != null && fp.budget_range !== '') ||
+    (Array.isArray(fp.room_types) && fp.room_types.length > 0) ||
+    (Array.isArray(fp.priorities) && fp.priorities.length > 0)
+  )
+}
 
 type ModalView = 'login' | 'register' | 'verification_sent'
 
@@ -45,7 +58,17 @@ export default function LandingPage() {
       const { error } = await signInWithEmail(loginEmail, loginPassword)
       if (error) {
         setLoginError(error.message)
-      } else {
+        return
+      }
+      try {
+        const profile = await api.getProfile()
+        if (hasFormPreferences(profile)) {
+          router.push('/chat')
+        } else {
+          router.push('/setup')
+        }
+      } catch {
+        // 404 or network: no profile or not loaded → show setup
         router.push('/setup')
       }
     } catch {
