@@ -184,7 +184,7 @@ CREATE TABLE halls (
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
-| `hall_id` | TEXT | PRIMARY KEY | 宿舍字符串标识，如 "1"–"9"、"JHC" |
+| `hall_id` | TEXT | PRIMARY KEY | 宿舍字符串标识，如 "1"–"9"、"JCH" |
 | `name` | TEXT | NOT NULL | 宿舍名称，如 "Hall IV" |
 | `static_info` | JSONB | NOT NULL | 宿舍详情（结构见下） |
 
@@ -194,10 +194,12 @@ CREATE TABLE halls (
 {
   "image_url": "https://shrl.hkust.edu.hk/sites/default/files/hall7_ext.jpg",
   "price_info": {
-    "local":     "Single: HK$37,252 | Double: HK$25,020",
-    "non_local": "Single: HK$43,008 | Double: HK$29,448"
+    "new_local": "Double: HK$19,460",
+    "continuing_local": "Double: HK$19,460",
+    "new_non_local": "Double: HK$25,168",
+    "continuing_non_local": "Double: HK$24,464"
   },
-  "price_note": "Per year, excl. air-conditioning fee",
+  "available_room_types": ["Double"],
   "facilities": ["En-suite Bathroom (Shared by 4–6)", "Laundry Room", "Pantry on each floor", "Common Rooms"],
   "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall7"
 }
@@ -208,10 +210,12 @@ CREATE TABLE halls (
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `image_url` | string | 宿舍外观图片 URL |
-| `price_info` | object | 按身份分开的年费。`local` = 本地生，`non_local` = 非本地生 / Exchange Student |
-| `price_info.local` | string | 本地生年费，如 `"Single: HK$37,252 \| Double: HK$25,020"` |
-| `price_info.non_local` | string | 非本地生/Exchange年费 |
-| `price_note` | string | 费用备注，如 `"Per year, excl. air-conditioning fee"` |
+| `price_info` | object | 按身份和是否新生分开的年费；后端会整体透传给前端 |
+| `price_info.new_local` | string | 新入学本地本科生年费 |
+| `price_info.continuing_local` | string | 继续修读本地本科生年费 |
+| `price_info.new_non_local` | string | 新入学非本地 / Exchange 学生年费 |
+| `price_info.continuing_non_local` | string | 继续修读非本地 / Exchange 学生年费 |
+| `available_room_types` | string[] | 可选房型列表，如 `["Double", "Triple"]` |
 | `facilities` | string[] | 设施列表，每项为一条字符串 |
 | `website_url` | string | 宿舍官方网页链接 |
 
@@ -219,7 +223,7 @@ CREATE TABLE halls (
 
 - `halls` 表不启用 RLS（仅管理员写入，所有用户可读）
 - 推荐服务在生成推荐后，根据 Bailian 返回的 `hall_id` 列表查询此表来补全宿舍信息
-- `price_info` 为 JSONB 对象；后端 `recommendation_service.py` 根据用户的 `form_preferences.identity` 自动选取 `local` 或 `non_local` 字段，并拼接 `price_note`，最终以纯字符串形式返回给前端
+- `price_info` 为 JSONB 对象；后端 `recommendation_service.py` 如检测到包含 `new_local` / `continuing_local` / `new_non_local` / `continuing_non_local` 四个字段，会将整个对象直接透传给前端，由前端分别展示各类价格；如仍为旧结构（只有 `local` / `non_local`），则后端会保留旧逻辑按身份选取并返回字符串
 
 ---
 

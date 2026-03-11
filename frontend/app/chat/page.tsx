@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import Sidebar from '@/components/Sidebar'
 import ChatPanel from '@/components/ChatPanel'
 import RecommendationPanel from '@/components/RecommendationPanel'
 import FacilitiesModal from '@/components/FacilitiesModal'
@@ -24,9 +23,9 @@ function mapHistoryToMessages(rows: { id: number; role: string; content: string;
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
 
 const DEFAULT_FORM: FormData = {
-  identity: 'Local Undergraduate',
+  identity: 'New local undergraduate',
   gender: 'Male',
-  budget: 'HK$ 15,000 - 20,000',
+  budget: 'HK$ 14,000 - 20,000',
   roomTypes: [],
   priorities: [],
   additionalInfo: '',
@@ -36,7 +35,6 @@ export default function ChatPage() {
   const router = useRouter()
 
   // ── UI state ────────────────────────────────────────────────────────────────
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [modalHall, setModalHall] = useState<HallRecommendationItem | null>(null)
 
   // ── Data state ──────────────────────────────────────────────────────────────
@@ -261,13 +259,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans overflow-hidden relative">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onNewChat={() => router.push('/setup')}
-        onLogout={handleLogout}
-      />
-
       <FacilitiesModal
         hall={modalHall}
         onClose={() => setModalHall(null)}
@@ -279,7 +270,6 @@ export default function ChatPage() {
         inputText={inputText}
         setInputText={setInputText}
         onSendMessage={handleSendMessage}
-        onToggleSidebar={() => setIsSidebarOpen(true)}
         onLogout={handleLogout}
       />
 

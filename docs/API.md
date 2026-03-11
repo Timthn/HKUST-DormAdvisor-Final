@@ -112,7 +112,12 @@ data: {"error": "错误描述"}
       "name": "Chan Sui Kau & Chan Lam Moon Chun Hall (Hall 7)",
       "reason": "Hall 7 offers en-suite bathrooms shared by small groups and a pantry on each floor, matching your preference for convenience and privacy.",
       "image_url": "https://shrl.hkust.edu.hk/sites/default/files/hall7_ext.jpg",
-      "price_info": "Single: HK$37,252 | Double: HK$25,020 (Per year, excl. air-conditioning fee)",
+      "price_info": {
+        "new_local": "Double: HK$19,460",
+        "continuing_local": "Double: HK$19,460",
+        "new_non_local": "Double: HK$25,168",
+        "continuing_non_local": "Double: HK$24,464"
+      },
       "facilities": ["En-suite Bathroom (Shared by 4–6)", "Laundry Room", "Pantry on each floor", "Common Rooms"],
       "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall7"
     },
@@ -121,16 +126,26 @@ data: {"error": "错误描述"}
       "name": "Cheng Yu Tung Hall (Hall 4)",
       "reason": "Hall 4 features sea view rooms and is close to the main academic buildings, ideal for students who prioritize location.",
       "image_url": "https://shrl.hkust.edu.hk/sites/default/files/hall4_ext.jpg",
-      "price_info": "Single: HK$XX,XXX | Double: HK$XX,XXX (Per year, excl. air-conditioning fee)",
+      "price_info": {
+        "new_local": "Double: HK$19,460",
+        "continuing_local": "Double: HK$19,460",
+        "new_non_local": "Double: HK$25,168",
+        "continuing_non_local": "Double: HK$24,464"
+      },
       "facilities": ["Single / Double Rooms", "Laundry Room", "Common Room", "Sea View"],
       "website_url": "https://shrl.hkust.edu.hk/residential-halls/ug/ughall4"
     },
     {
-      "hall_id": "JHC",
-      "name": "Jockey Hall Complex (JHC)",
-      "reason": "JHC offers single rooms at a competitive price, suitable for students who value personal space on a budget.",
+      "hall_id": "JCH",
+      "name": "Jockey Hall Complex (JCH)",
+      "reason": "JCH offers single rooms at a competitive price, suitable for students who value personal space on a budget.",
       "image_url": "https://shrl.hkust.edu.hk/sites/default/files/jhc_ext.jpg",
-      "price_info": "Single: HK$XX,XXX (Per year, excl. air-conditioning fee)",
+      "price_info": {
+        "new_local": "Single: HK$19,460",
+        "continuing_local": "Single: HK$19,460",
+        "new_non_local": "Single: HK$25,168",
+        "continuing_non_local": "Single: HK$24,464"
+      },
       "facilities": ["Single Rooms", "Laundry Room", "Common Room"],
       "website_url": "https://shrl.hkust.edu.hk/residential-halls/jockey-hall-complex"
     }

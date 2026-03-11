@@ -4,9 +4,19 @@ import React from 'react'
 import { Sparkles, Settings, ChevronDown, ChevronRight, Plus, X, RefreshCw } from 'lucide-react'
 import type { HallRecommendationItem, FormData, RoomType, BudgetOption, Identity, Gender } from '@/types'
 
-const IDENTITY_OPTIONS: Identity[] = ['Local Undergraduate', 'Non-Local Undergraduate', 'Exchange Student']
+const IDENTITY_OPTIONS: Identity[] = [
+  'New local undergraduate',
+  'Continuing local undergraduate',
+  'New non-local undergraduate',
+  'Continuing non-local undergraduate',
+]
 const GENDER_OPTIONS: Gender[] = ['Male', 'Female']
-const BUDGET_OPTIONS: BudgetOption[] = ['HK$ 15,000 - 20,000', 'HK$ 20,000 - 25,000', 'HK$ 25,000 - 30,000', 'HK$ 30,000+']
+const BUDGET_OPTIONS: BudgetOption[] = [
+  'HK$ 14,000 - 20,000',
+  'HK$ 20,000 - 26,000',
+  'HK$ 26,000 - 38,000',
+  'HK$ 38,000+',
+]
 const ROOM_TYPE_OPTIONS: RoomType[] = ['Single Room', 'Double Room', 'Triple Room']
 
 interface RecommendationPanelProps {
@@ -83,7 +93,7 @@ export default function RecommendationPanel({
                 <h3 className="text-lg font-bold text-gray-800 group-hover:text-[#003366] transition-colors mb-2">
                   {hall.name}
                 </h3>
-                <p className="text-sm text-gray-600 mb-5 leading-relaxed line-clamp-3">
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed line-clamp-3">
                   {hall.reason}
                 </p>
                 <div className="flex justify-end gap-3">
@@ -91,7 +101,7 @@ export default function RecommendationPanel({
                     onClick={() => onShowFacilities(hall)}
                     className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 hover:text-[#003366] transition-colors"
                   >
-                    View Facilities
+                    View details
                   </button>
                   <button
                     onClick={() => hall.website_url && window.open(hall.website_url, '_blank')}
@@ -158,6 +168,17 @@ export default function RecommendationPanel({
                     </select>
                     <ChevronDown className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={16} />
                   </div>
+                  <p className="text-[11px] text-gray-400 mt-1.5 ml-0.5">
+                    * Note: Hall charges do not include air-conditioning fees. For details, please refer to{' '}
+                    <a
+                      href="https://shrl.hkust.edu.hk"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#003366] hover:underline"
+                    >
+                      SHRL website
+                    </a>.
+                  </p>
                 </div>
 
                 {/* Room Type */}
@@ -178,6 +199,9 @@ export default function RecommendationPanel({
                       </button>
                     ))}
                   </div>
+                  <p className="text-[11px] text-gray-400 mt-1.5 ml-0.5">
+                    * Note: Single rooms typically cost over HK$30,000 per year. Please make sure to increase your budget accordingly.
+                  </p>
                 </div>
 
                 {/* Priorities */}

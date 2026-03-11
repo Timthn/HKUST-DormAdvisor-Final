@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Menu, Send, LogOut } from 'lucide-react';
+import { Send, LogOut } from 'lucide-react';
 import { Message } from '@/types';
 import { BOT_AVATAR_URL } from '@/lib/constants';
 
@@ -13,7 +13,6 @@ interface ChatPanelProps {
   inputText: string;
   setInputText: (text: string) => void;
   onSendMessage: () => void;
-  onToggleSidebar: () => void;
   onLogout: () => void;
 }
 
@@ -23,7 +22,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   inputText,
   setInputText,
   onSendMessage,
-  onToggleSidebar,
   onLogout,
 }) => {
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -42,20 +40,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     <div className="w-full md:w-[55%] flex flex-col border-r border-gray-200 bg-[#f7f9fc] relative">
       {/* Header */}
       <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10 sticky top-0">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={onToggleSidebar}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors"
-          >
-             <Menu size={24} />
-          </button>
-          <div className="flex flex-col">
-            <h1 className="text-gray-800 font-bold tracking-wide text-sm">HKUST Dorm Advisor</h1>
-            <span className="text-[10px] text-gray-400 flex items-center gap-1.5 font-medium uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-              Online
-            </span>
-          </div>
+        <div className="flex flex-col">
+          <h1 className="text-gray-800 font-bold tracking-wide text-sm">HKUST Dorm Advisor</h1>
+          <span className="text-[10px] text-gray-400 flex items-center gap-1.5 font-medium uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+            Online
+          </span>
         </div>
         <button
           onClick={onLogout}

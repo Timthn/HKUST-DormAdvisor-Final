@@ -2,7 +2,11 @@
 
 import React from 'react'
 import { X, ExternalLink, CheckCircle } from 'lucide-react'
-import type { HallRecommendationItem } from '@/types'
+import type { HallRecommendationItem, PriceInfoByType } from '@/types'
+
+const isPriceObject = (value: HallRecommendationItem['price_info']): value is PriceInfoByType => {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+}
 
 interface FacilitiesModalProps {
   hall: HallRecommendationItem | null
@@ -39,25 +43,66 @@ export default function FacilitiesModal({ hall, onClose }: FacilitiesModalProps)
 
         {/* Body */}
         <div className="p-6">
-          {/* Price + Room Types */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                Avg. Price (Local)
-              </span>
-              <span className="font-bold text-[#003366] text-lg">
-                {hall.price_info || '—'}
-              </span>
-            </div>
-            <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                Room Types
-              </span>
-              <span className="font-bold text-[#003366] text-base leading-snug">
-                {/* Room types may be embedded in facilities or price_info */}
-                See facilities
-              </span>
-            </div>
+          {/* Prices */}
+          <div className="mb-6">
+            {isPriceObject(hall.price_info) ? (
+              <>
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
+                  Prices by Identity
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  {hall.price_info.new_local && (
+                    <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                        New Local
+                      </div>
+                      <div className="font-bold text-[#003366] text-sm leading-snug">
+                        {hall.price_info.new_local}
+                      </div>
+                    </div>
+                  )}
+                  {hall.price_info.continuing_local && (
+                    <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                        Continuing Local
+                      </div>
+                      <div className="font-bold text-[#003366] text-sm leading-snug">
+                        {hall.price_info.continuing_local}
+                      </div>
+                    </div>
+                  )}
+                  {hall.price_info.new_non_local && (
+                    <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                        New Non-Local
+                      </div>
+                      <div className="font-bold text-[#003366] text-sm leading-snug">
+                        {hall.price_info.new_non_local}
+                      </div>
+                    </div>
+                  )}
+                  {hall.price_info.continuing_non_local && (
+                    <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                        Continuing Non-Local
+                      </div>
+                      <div className="font-bold text-[#003366] text-sm leading-snug">
+                        {hall.price_info.continuing_non_local}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                  Price
+                </span>
+                <span className="font-bold text-[#003366] text-lg">
+                  {hall.price_info || '—'}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Facilities */}

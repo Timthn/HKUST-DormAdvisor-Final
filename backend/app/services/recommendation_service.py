@@ -19,9 +19,9 @@ Format strictly:
   {"hall_id": "<string>", "reason": "<one sentence in English>"},
   {"hall_id": "<string>", "reason": "<one sentence in English>"}
 ]
-Valid hall_id values are string identifiers for HKUST student halls (e.g. "1", "2", ..., "9", "JHC").
+Valid hall_id values are string identifiers for HKUST student halls (e.g. "1", "2", ..., "9", "JCH").
 Do not include any text before or after the JSON array."""
-
+## system prompt has been added to bailian services 
 
 class RecommendationService:
 
@@ -81,8 +81,7 @@ class RecommendationService:
         halls_by_id = {h['hall_id']: h for h in (halls_resp.data or [])}
 
         # Step 5: enrich
-        identity = form_prefs.get('identity', '')
-        use_nonlocal_price = 'Non-Local' in identity or 'Exchange' in identity
+        four_keys = ('new_local', 'continuing_local', 'new_non_local', 'continuing_non_local')
 
         enriched = []
         for item in ranked:
@@ -90,12 +89,11 @@ class RecommendationService:
             static = hall.get('static_info') or {}
 
             price_raw = static.get('price_info', {})
-            if isinstance(price_raw, dict):
-                price_key = 'non_local' if use_nonlocal_price else 'local'
-                price_str = price_raw.get(price_key, '')
-                price_note = static.get('price_note', '')
-                price_info = f"{price_str} ({price_note})" if price_str and price_note else price_str
+            if isinstance(price_raw, dict) and any(k in price_raw for k in four_keys):
+                # New schema: pass all four price types through to frontend / consumers
+                price_info = {k: price_raw.get(k, '') for k in four_keys if price_raw.get(k)}
             else:
+                # Legacy or other schema: pass through as-is (RAG / frontend decide how to use)
                 price_info = price_raw
 
             enriched.append({

@@ -65,7 +65,7 @@ class HallRecommendationItem(BaseModel):
     name: str
     reason: str
     image_url: Optional[str] = None
-    price_info: Optional[str] = None
+    price_info: Optional[Any] = None
     facilities: Optional[List[str]] = None
     website_url: Optional[str] = None
 

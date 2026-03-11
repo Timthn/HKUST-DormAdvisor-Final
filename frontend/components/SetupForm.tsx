@@ -11,18 +11,19 @@ interface SetupFormProps {
 }
 
 const IDENTITY_OPTIONS: Identity[] = [
-  'Local Undergraduate',
-  'Non-Local Undergraduate',
-  'Exchange Student',
+  'New local undergraduate',
+  'Continuing local undergraduate',
+  'New non-local undergraduate',
+  'Continuing non-local undergraduate',
 ]
 
 const GENDER_OPTIONS: Gender[] = ['Male', 'Female']
 
 const BUDGET_OPTIONS: BudgetOption[] = [
-  'HK$ 15,000 - 20,000',
-  'HK$ 20,000 - 25,000',
-  'HK$ 25,000 - 30,000',
-  'HK$ 30,000+',
+  'HK$ 14,000 - 20,000',
+  'HK$ 20,000 - 26,000',
+  'HK$ 26,000 - 38,000',
+  'HK$ 38,000+',
 ]
 
 const ROOM_TYPE_OPTIONS: RoomType[] = ['Single Room', 'Double Room', 'Triple Room']
@@ -30,9 +31,9 @@ const ROOM_TYPE_OPTIONS: RoomType[] = ['Single Room', 'Double Room', 'Triple Roo
 export default function SetupForm({ onStart, onBack, existingData }: SetupFormProps) {
   const [formData, setFormData] = useState<FormData>(
     existingData || {
-      identity: 'Local Undergraduate',
+      identity: 'New local undergraduate',
       gender: 'Male',
-      budget: 'HK$ 15,000 - 20,000',
+      budget: 'HK$ 14,000 - 20,000',
       roomTypes: [],
       priorities: [],
       additionalInfo: '',
@@ -142,6 +143,9 @@ export default function SetupForm({ onStart, onBack, existingData }: SetupFormPr
                 </button>
               ))}
             </div>
+            <p className="text-xs text-gray-400 mt-1.5 ml-1">
+              * Note: Single rooms typically cost over HK$30,000 per year. Please make sure to increase your budget accordingly.
+            </p>
           </div>
 
           {/* Priority Factors */}
