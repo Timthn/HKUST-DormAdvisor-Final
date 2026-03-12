@@ -18,6 +18,7 @@ backend/.env
 backend/.env.local
 
 # IDE
+.cursor/
 .vscode/
 .idea/
 *.swp

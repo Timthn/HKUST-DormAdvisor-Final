@@ -111,23 +111,9 @@ async def stream_chat_message(
     bailian = get_chat_bailian_service()
     profile = _fetch_profile(supabase, user_id)
 
-    # ── Long‑term memory: lazily create Bailian memory_id on first chat ────────
+    # Long‑term memory: for now, only use existing memory_id if already present.
+    # We no longer attempt to create a new memory_id here to avoid API errors.
     memory_id = profile.get("memory_id")
-    if not memory_id:
-        try:
-            memory_id = await bailian.create_memory()
-            if supabase:
-                supabase.table("profiles").update(
-                    {
-                        "memory_id": memory_id,
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
-                    }
-                ).eq("user_id", user_id).execute()
-            print(f"[memory] Created memory_id for user {user_id}")
-        except Exception as e:
-            # If memory creation fails, continue without long‑term memory
-            print(f"[memory] Failed to create memory_id for user {user_id}: {e}")
-            memory_id = None
 
     context_prompt = _build_context_prompt(profile, message.message)
 
@@ -187,22 +173,9 @@ async def send_chat_message(
     try:
         profile = _fetch_profile(supabase, user_id)
 
-        # ── Long‑term memory: lazily create Bailian memory_id on first chat ────
+        # Long‑term memory: only use an existing memory_id if profile already has one.
+        # We intentionally no longer create a new memory_id here.
         memory_id = profile.get("memory_id")
-        if not memory_id:
-            try:
-                memory_id = await bailian.create_memory()
-                if supabase:
-                    supabase.table("profiles").update(
-                        {
-                            "memory_id": memory_id,
-                            "updated_at": datetime.now(timezone.utc).isoformat(),
-                        }
-                    ).eq("user_id", user_id).execute()
-                print(f"[memory] Created memory_id for user {user_id} (non-stream)")
-            except Exception as e:
-                print(f"[memory] Failed to create memory_id for user {user_id} (non-stream): {e}")
-                memory_id = None
 
         context_prompt = _build_context_prompt(profile, message.message)
         history = _get_recent_chat_messages(supabase, user_id, limit=10)

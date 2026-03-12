@@ -12,13 +12,15 @@ from app.api import chat, recommend, profile
 # Load environment variables
 load_dotenv()
 
+
 # Initialize FastAPI app
 app = FastAPI(
     title="HKUST Dorm Advisor API",
     description="Backend API for HKUST Dormitory Recommendation System",
     version="2.0.0",
     docs_url="/api/docs",
-    redoc_url="/api/redoc"
+    redoc_url="/api/redoc",
+    swagger_ui_parameters={"persistAuthorization": True},
 )
 
 # Configure CORS
