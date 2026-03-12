@@ -90,18 +90,13 @@ hkust-dorm-advisor_202602/
 │   │   ├── services/               # 业务逻辑
 │   │   │   ├── bailian_service.py  # 百炼 AI 服务
 │   │   │   ├── recommendation_service.py
-│   │   │   ├── extractor_service.py  # DeepSeek 隐性偏好分析（Extractor）
-│   │   │   └── rag_service.py      # RAG 检索（规划中）
+│   │   │   └── extractor_service.py  # DeepSeek 隐性偏好分析（Extractor）
 │   │   ├── models/                 # 数据模型
 │   │   │   └── schemas.py          # Pydantic 模型
 │   │   ├── database/               # 数据库层
 │   │   │   └── supabase_client.py  # Supabase 客户端
 │   │   ├── middleware/             # 中间件
 │   │   │   └── auth.py             # JWT 认证
-│   │   ├── utils/                  # 工具函数
-│   │   │   └── constants.py        # 系统常量
-│   │   ├── data/                   # 静态数据
-│   │   │   └── hall_facilities.json
 │   │   └── main.py                 # 应用入口
 │   ├── requirements.txt            # Python 依赖
 │   ├── .env.example                # 环境变量模板
@@ -117,7 +112,6 @@ hkust-dorm-advisor_202602/
 │   │   └── chat/page.tsx           # 聊天主界面
 │   ├── components/                 # React 组件
 │   │   ├── ChatPanel.tsx           # 聊天消息面板
-│   │   ├── Sidebar.tsx             # 侧边导航栏
 │   │   ├── RecommendationPanel.tsx # AI 分析面板
 │   │   ├── SetupForm.tsx           # 用户偏好表单
 │   │   ├── FacilitiesModal.tsx     # 设施详情弹窗
@@ -133,7 +127,7 @@ hkust-dorm-advisor_202602/
 │   ├── tailwind.config.js          # Tailwind 配置
 │   ├── tsconfig.json               # TypeScript 配置
 │   ├── .env.local.example          # 环境变量模板
-│   └── README.md
+│   └── README.md                   # 前端子專案專用說明（Frontend README）
 │
 ├── 📁 docs/                        # 项目文档
 │   ├── API.md                      # API 接口文档
@@ -142,11 +136,15 @@ hkust-dorm-advisor_202602/
 │   └── QUICKSTART.md               # 快速参考
 │
 ├── README.md                       # 项目总览（本文件）
-├── TODO.md                         # 开发任务清单
 ├── LOCAL_SETUP.md                  # 本地配置详细指南
-├── TESTING.md                      # 测试指南
 └── .gitignore                      # Git 忽略规则
 ```
+
+### 前端架构与用户流程 | Frontend Architecture & User Flow
+
+- **路由 Routes:** `/` 欢迎页（登录弹窗）→ `/setup` 偏好设置表单 → `/chat` 主界面（左侧聊天，右侧推荐）。`/login` 重定向至 `/`。
+- **登录后:** 前端调用 `getProfile()`；若已有 form 偏好则进入 `/chat` 并载入历史与推荐，否则进入 `/setup`。
+- **聊天页布局:** 左侧 **ChatPanel**（消息列表、输入框、登出）；右侧 **RecommendationPanel**（标题「Recommended Choices for You」、Refresh 按钮、宿舍卡片、可折叠偏好表单与「Update Recommendations」）；点击宿舍「View details」打开 **FacilitiesModal**。
 
 ---
 
@@ -244,13 +242,13 @@ pip install -r requirements.txt
 pip list
 ```
 
-**应包含的主要包 | Expected Packages:**
+**应包含的主要包 | Expected Packages (matching current env):**
 - fastapi==0.109.0
 - uvicorn==0.27.0
 - python-dotenv==1.0.0
 - pydantic==2.5.3
 - supabase==2.3.4
-- httpx (0.24-0.26)
+- httpx==0.25.2
 - python-jose==3.3.0
 - passlib==1.7.4
 
@@ -588,8 +586,7 @@ npm run build
 | 文档 Document | 描述 Description |
 |--------------|-----------------|
 | [LOCAL_SETUP.md](LOCAL_SETUP.md) | 详细的本地开发配置指南 |
-| [TESTING.md](TESTING.md) | 测试流程和测试用例 |
-| [TODO.md](TODO.md) | 开发路线图和任务清单 |
+| [frontend/README.md](frontend/README.md) | 前端 Next.js 子專案說明 |
 | [docs/API.md](docs/API.md) | 完整 API 接口文档 |
 | [docs/DATABASE.md](docs/DATABASE.md) | 数据库架构和设置 |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 生产环境部署指南 |
@@ -623,10 +620,10 @@ npm run build
 
 ### 请求流程 | Request Flow
 
-1. **用户登录 | User Login**: 前端 → Supabase Auth → JWT Token → 前端
+1. **用户登录 | User Login**: 前端 → Supabase Auth → JWT Token → 前端；登录成功后前端调用 `getProfile()`，若已有 form 偏好则跳转 `/chat` 并载入历史与推荐，否则跳转 `/setup`。
 2. **聊天消息 | Chat (SSE)**: 前端 → `POST /api/chat/stream` → 后端从 `chat_logs` 取最近 10 条作为多轮历史 → 与当前用户问题一并送 Bailian Chat Agent → SSE 流式返回 → 前端用 react-markdown 渲染（表格、粗体等）；用户消息与 AI 回复写入 `chat_logs`
 3. **Extractor（后台）**: 每 20 条用户消息后自动触发 → DeepSeek API 分析对话 → 更新 `profiles.inferred_preferences`
-4. **生成推荐 | Recommendations**: `POST /api/recommend/` → 读取 `form_preferences` + `inferred_preferences` → Bailian Recommend Agent → 查 `halls` 表补全信息 → 写入 `profiles.last_recommendation` → 返回前端
+4. **生成推荐 | Recommendations**: `POST /api/recommend/` → 读取 `form_preferences` + `inferred_preferences` → Bailian Recommend Agent → 查 `halls` 表补全信息 → 写入 `profiles.last_recommendation` → 返回前端。**Refresh 推荐**：推荐面板标题旁 Refresh 按钮触发 saveProfile + generateRecommendations，不清空列表、保留表单。
 5. **保存偏好 | Save Prefs**: 前端 SetupForm → `POST /api/profile/` → 更新 `profiles.form_preferences`（UPDATE only，行由 DB Trigger 创建）
 
 ---
@@ -636,7 +633,9 @@ npm run build
 ### ✅ 已实现 | Implemented
 
 - [x] 用户认证（Supabase Auth）| User Authentication
+- [x] 登录后根据是否已有偏好跳转（有则进聊天，无则进设置）| Login profile check: skip setup when profile exists
 - [x] 用户偏好设置（form_preferences）| User Preferences via SetupForm
+- [x] 推荐面板 Refresh 按钮（保留表单、不清空列表重新拉推荐）| Refresh recommendations button (keeps form, no clear list)
 - [x] AI 流式聊天（SSE StreamingResponse）| Streaming AI Chat
 - [x] 多轮对话（最近 10 条历史送 Bailian）| Multi-turn Chat with History
 - [x] 聊天回复 Markdown 渲染（表格、粗体、列表）| Markdown Rendering in Chat
@@ -648,11 +647,10 @@ npm run build
 - [x] 响应式设计（手机/桌面）| Responsive Design
 - [x] 开发模式便捷测试 | Development Mode
 
-### 🚧 规划中 | Planned (from TODO.md)
+### 🚧 规划中 | Planned
 
 - [ ] RAG 知识库检索 | RAG Knowledge Base
 - [ ] 多会话聊天历史 | Multi-session History（当前已支持单用户多轮对话与历史持久化）
-- [ ] 推荐结果持久化 | Persistent Recommendations
 - [ ] 高级用户画像 | Advanced Profiling
 - [ ] 云端聊天记录同步 | Cloud Chat Sync
 - [ ] 多语言支持（英文/中文）| Multi-language Support

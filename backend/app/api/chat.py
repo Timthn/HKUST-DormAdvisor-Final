@@ -107,9 +107,28 @@ async def stream_chat_message(
     user_id: str = Depends(get_current_user_id),
 ):
     """Stream chat via SSE. Uses recent chat_logs for multi-turn context, then writes user + assistant (two INSERTs)."""
-    bailian = get_chat_bailian_service()
     supabase = get_supabase()
+    bailian = get_chat_bailian_service()
     profile = _fetch_profile(supabase, user_id)
+
+    # ── Long‑term memory: lazily create Bailian memory_id on first chat ────────
+    memory_id = profile.get("memory_id")
+    if not memory_id:
+        try:
+            memory_id = await bailian.create_memory()
+            if supabase:
+                supabase.table("profiles").update(
+                    {
+                        "memory_id": memory_id,
+                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                ).eq("user_id", user_id).execute()
+            print(f"[memory] Created memory_id for user {user_id}")
+        except Exception as e:
+            # If memory creation fails, continue without long‑term memory
+            print(f"[memory] Failed to create memory_id for user {user_id}: {e}")
+            memory_id = None
+
     context_prompt = _build_context_prompt(profile, message.message)
 
     # Multi-turn: fetch chat_logs → history (list of {role, content}) → append new user query → send to Bailian
@@ -130,7 +149,7 @@ async def stream_chat_message(
     async def event_stream():
         full_text = ""
         try:
-            async for chunk in bailian.stream_message(msgs):
+            async for chunk in bailian.stream_message(msgs, memory_id=memory_id):
                 full_text += chunk
                 yield f"data: {json.dumps({'text': chunk})}\n\n"
                 await asyncio.sleep(0)
@@ -162,16 +181,34 @@ async def send_chat_message(
     user_id: str = Depends(get_current_user_id)
 ):
     """Non-streaming chat. Uses same multi-turn history as /stream."""
-    bailian = get_chat_bailian_service()
     supabase = get_supabase()
+    bailian = get_chat_bailian_service()
 
     try:
         profile = _fetch_profile(supabase, user_id)
+
+        # ── Long‑term memory: lazily create Bailian memory_id on first chat ────
+        memory_id = profile.get("memory_id")
+        if not memory_id:
+            try:
+                memory_id = await bailian.create_memory()
+                if supabase:
+                    supabase.table("profiles").update(
+                        {
+                            "memory_id": memory_id,
+                            "updated_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    ).eq("user_id", user_id).execute()
+                print(f"[memory] Created memory_id for user {user_id} (non-stream)")
+            except Exception as e:
+                print(f"[memory] Failed to create memory_id for user {user_id} (non-stream): {e}")
+                memory_id = None
+
         context_prompt = _build_context_prompt(profile, message.message)
         history = _get_recent_chat_messages(supabase, user_id, limit=10)
         messages = history + [{"role": "user", "content": context_prompt}]
 
-        ai_response = await bailian.send_message(messages)
+        ai_response = await bailian.send_message(messages, memory_id=memory_id)
         ai_response = _strip_footnote_references(ai_response)
 
         # Step 5: Store chat logs

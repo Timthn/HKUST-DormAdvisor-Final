@@ -30,7 +30,6 @@ frontend/
 ├── components/           # React 组件
 │   ├── LandingPage.tsx
 │   ├── SetupForm.tsx
-│   ├── Sidebar.tsx
 │   ├── ChatPanel.tsx
 │   ├── RecommendationPanel.tsx
 │   └── FacilitiesModal.tsx
@@ -51,10 +50,10 @@ frontend/
 
 如果只想测试核心功能，无需完整配置：
 
-**Windows:**
-```powershell
+```bash
 cd frontend
-.\start.ps1  # 自动安装依赖
+npm install
+npm run dev
 ```
 
 **首次运行**需要配置 `.env.local` 文件：
@@ -63,16 +62,7 @@ NEXT_PUBLIC_DEV_MODE=true  # 开启开发模式，跳过认证
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-**Mac/Linux:**
-```bash
-cd frontend
-chmod +x start.sh
-./start.sh
-```
-
-应用将在 `http://localhost:3000` 启动。
-
-直接访问 http://localhost:3000/chat 即可测试（无需登录）。
+应用将在 `http://localhost:3000` 启动。直接访问 http://localhost:3000/chat 即可测试（无需登录）。Windows 下也可使用 `start-dev.ps1`（若存在）启动。
 
 ### 2. 完整配置（生产环境）
 
@@ -144,10 +134,7 @@ npm start
 聊天界面，用户与 AI 顾问对话。Bot 回复使用 react-markdown + remark-gfm 渲染，支持表格、粗体、列表等。Next.js 需在 `next.config.js` 中配置 `transpilePackages: ['react-markdown', 'remark-gfm']`。
 
 ### RecommendationPanel
-显示 AI 推荐的宿舍及详情，支持动态更新偏好。
-
-### Sidebar
-会话管理侧边栏，支持多会话切换。
+右侧推荐面板：标题「Recommended Choices for You」、Refresh 按钮（重新拉推荐且保留表单、不清空列表）、宿舍卡片、可折叠偏好表单与「Update Recommendations」按钮。
 
 ### FacilitiesModal
 展示具体宿舍的详细设施信息。
@@ -159,25 +146,30 @@ npm start
 ### 主要 API 调用
 
 ```typescript
-import { api } from '@/lib/api'
+import { api, streamChatMessage } from '@/lib/api'
 
-// 发送聊天消息
-const response = await api.sendChatMessage('Hall I 有海景吗？')
+// 获取用户画像（登录后判断是否跳 /chat 或 /setup）
+const profile = await api.getProfile()
+
+// 保存偏好
+await api.saveProfile(formData)
 
 // 生成推荐
-const recommendations = await api.generateRecommendations()
+const { recommendations } = await api.generateRecommendations()
 
-// 更新用户画像
-await api.updateProfile(formData)
+// 聊天历史
+const { messages } = await api.getChatHistory(50)
+
+// 聊天消息为 SSE 流式，使用 streamChatMessage(message, onChunk, onDone, onError)
+streamChatMessage(userMessage, onChunk, onDone, onError)
 ```
 
 ## 认证流程
 
-1. 用户在 `/login` 页面输入邮箱密码
-2. Supabase Auth 验证并返回 JWT Token
-3. Token 存储在浏览器（通过 Supabase SDK）
-4. 所有 API 请求自动携带 Token
-5. 后端验证 Token 并返回数据
+1. 用户在首页 `/`（LandingPage）点击登录，在弹窗内输入邮箱密码
+2. Supabase Auth 验证并返回 JWT Token，Token 由 Supabase SDK 管理
+3. 前端调用 `api.getProfile()`；若已有 form 偏好则跳转 `/chat` 并载入历史与推荐，否则跳转 `/setup`
+4. 所有 API 请求自动携带 Token，后端验证后返回数据
 
 ## 开发注意事项
 
