@@ -49,14 +49,6 @@ class ChatResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
-class ChatHistoryEntry(BaseModel):
-    """Single chat_logs row"""
-    id: int
-    role: str
-    content: str
-    created_at: datetime
-
-
 # ---------- Recommendation Models ----------
 
 class HallRecommendationItem(BaseModel):
@@ -76,24 +68,9 @@ class RecommendationResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
-# ---------- Hall Models ----------
-
-class HallDetails(BaseModel):
-    """Hall row from halls table"""
-    hall_id: str
-    name: str
-    static_info: Dict[str, Any]
-
-
 # ---------- Auth Models ----------
 
 class TokenData(BaseModel):
     """JWT token payload"""
     user_id: str
     email: Optional[str] = None
-
-
-class ErrorResponse(BaseModel):
-    """Error response"""
-    detail: str
-    error_code: Optional[str] = None
