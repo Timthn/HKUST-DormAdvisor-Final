@@ -16,7 +16,7 @@ backend/venv/
 backend/env/
 backend/.env
 backend/.env.local
-
+backend/.venv_test/
 # IDE
 .cursor/
 .vscode/
