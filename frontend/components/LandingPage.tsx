@@ -119,7 +119,7 @@ export default function LandingPage() {
       <div className="relative z-20 flex flex-col items-center justify-center min-h-screen text-center px-6">
         <div className="mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="flex items-center justify-center gap-2 mb-6 text-white/80 uppercase tracking-[0.2em] text-sm font-semibold">
-            <Home size={18} /> HKUST Dorm
+            <Home size={18} /> HKUST Dorm Advisor
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight drop-shadow-2xl">
             Welcome Home.
