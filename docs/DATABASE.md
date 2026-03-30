@@ -137,6 +137,10 @@ CREATE TABLE chat_logs (
   user_id UUID NOT NULL REFERENCES profiles(user_id) ON DELETE CASCADE,
   role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
   content TEXT NOT NULL,
+  history_sent JSONB,
+  profile_sent JSONB,
+  inferred_preferences_sent TEXT,
+  chunk_returned JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -156,6 +160,10 @@ CREATE INDEX idx_chat_logs_user_time ON chat_logs(user_id, created_at DESC);
 | `user_id` | UUID | NOT NULL, FK | 关联 profiles 表 |
 | `role` | TEXT | CHECK | 'user' 或 'assistant' |
 | `content` | TEXT | NOT NULL | 消息内容 |
+| `history_sent` | JSONB | nullable | 该轮发给 Bailian 的消息数组（含历史 + 当前问题上下文） |
+| `profile_sent` | JSONB | nullable | 该轮发送时用户的 `form_preferences` 快照 |
+| `inferred_preferences_sent` | TEXT | nullable | 该轮发送时用户的 `inferred_preferences`；为空则为 NULL |
+| `chunk_returned` | JSONB | nullable | Bailian 返回的 RAG `doc_references` 引用片段 |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | 创建时间 |
 
 #### 示例数据
@@ -351,6 +359,10 @@ CREATE TABLE IF NOT EXISTS chat_logs (
   user_id    UUID         NOT NULL REFERENCES profiles(user_id) ON DELETE CASCADE,
   role       TEXT         NOT NULL CHECK (role IN ('user', 'assistant')),
   content    TEXT         NOT NULL,
+  history_sent JSONB,
+  profile_sent JSONB,
+  inferred_preferences_sent TEXT,
+  chunk_returned JSONB,
   created_at TIMESTAMPTZ  DEFAULT NOW()
 );
 

@@ -66,10 +66,10 @@ data: {"error": "错误描述"}
 
 ### GET /api/chat/history
 
-获取用户的聊天历史记录。消息按 `created_at`、`id` 升序返回，保证同一轮 user/assistant 顺序正确（刷新页面后历史顺序与对话一致）。
+获取用户的聊天历史记录。**取该用户时间上最新的 `limit` 条**（默认 50），再按 `created_at`、`id` 升序返回，保证同一轮 user/assistant 顺序正确；刷新页面后展示的是最近对话而非最早一批。
 
 **Query Parameters**:
-- `limit` (可选): 返回的消息数量，默认 50
+- `limit` (可选): 返回的消息条数上限，默认 50（最新 N 条）
 
 **Response**:
 ```json

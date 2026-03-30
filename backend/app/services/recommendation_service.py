@@ -63,7 +63,7 @@ class RecommendationService:
             {"role": "user", "content": user_prompt}
         ]
 
-        raw_response = await self.bailian.send_message(messages)
+        raw_response, _ = await self.bailian.send_message(messages)
 
         # Step 3: parse JSON array from response
         ranked = self._parse_hall_json(raw_response)

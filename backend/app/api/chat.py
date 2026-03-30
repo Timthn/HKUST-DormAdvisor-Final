@@ -37,10 +37,19 @@ def _build_context_prompt(profile: dict, user_message: str) -> str:
     identity = fp.get('identity') or profile.get('identity', 'Student')
     budget = fp.get('budget_range') or profile.get('budget_range', 'Not specified')
     preferences = fp.get('priorities') or profile.get('preferences', {})
-    return (
-        f"[User Context]\n- Identity: {identity}\n- Budget: {budget}\n- Preferences: {preferences}\n\n"
-        f"[User Question]\n{user_message}"
-    )
+    inferred = profile.get('inferred_preferences') or ''
+
+    context_lines = [
+        "[User Context]",
+        f"- Identity: {identity}",
+        f"- Budget: {budget}",
+        f"- Preferences: {preferences}",
+    ]
+    if isinstance(inferred, str) and inferred.strip():
+        context_lines.append(f"- Inferred Preferences: {inferred}")
+
+    context = "\n".join(context_lines)
+    return f"{context}\n\n[User Question]\n{user_message}"
 
 
 def _strip_footnote_references(text: str) -> str:
@@ -63,13 +72,14 @@ def _get_recent_chat_messages(supabase, user_id: str, limit: int = 10) -> list:
             supabase.table("chat_logs")
             .select("id, created_at, role, content")
             .eq("user_id", user_id)
-            .order("created_at", desc=False)
+            .order("created_at", desc=True)
             .limit(limit)
             .execute()
         )
         if not rows.data:
             return []
-        # Same-turn rows share created_at; sort by id so user (inserted first) comes before assistant
+        # Query gets newest rows first; sort back to chronological order for model context.
+        # Same-turn rows share created_at; sort by id so user (inserted first) comes before assistant.
         ordered = sorted(rows.data, key=lambda r: (r.get("created_at") or "", r.get("id") or 0))
         return [{"role": r["role"], "content": (r.get("content") or "").strip()} for r in ordered]
     except Exception:
@@ -128,6 +138,9 @@ async def stream_chat_message(
         try:
             supabase.table('chat_logs').insert({
                 'user_id': user_id, 'role': 'user', 'content': message.message, 'created_at': turn_ts,
+                'history_sent': msgs,
+                'profile_sent': profile.get('form_preferences'),
+                'inferred_preferences_sent': profile.get('inferred_preferences'),
             }).execute()
         except Exception as e:
             print(f"[stream] Failed to save user message: {e}")
@@ -147,8 +160,10 @@ async def stream_chat_message(
             if supabase and full_text:
                 try:
                     clean_text = _strip_footnote_references(full_text)
+                    chunk_returned = getattr(bailian, "_last_doc_references", None)
                     supabase.table('chat_logs').insert({
                         'user_id': user_id, 'role': 'assistant', 'content': clean_text, 'created_at': turn_ts,
+                        'chunk_returned': chunk_returned,
                     }).execute()
                     _maybe_schedule_extractor(supabase, user_id)
                 except Exception as e:
@@ -181,17 +196,21 @@ async def send_chat_message(
         history = _get_recent_chat_messages(supabase, user_id, limit=10)
         messages = history + [{"role": "user", "content": context_prompt}]
 
-        ai_response = await bailian.send_message(messages, memory_id=memory_id)
-        ai_response = _strip_footnote_references(ai_response)
+        ai_response_text, doc_references = await bailian.send_message(messages, memory_id=memory_id)
+        ai_response = _strip_footnote_references(ai_response_text)
 
         # Step 5: Store chat logs
         if supabase:
             timestamp = datetime.now().isoformat()
             supabase.table('chat_logs').insert({
-                'user_id': user_id, 'role': 'user', 'content': message.message, 'created_at': timestamp
+                'user_id': user_id, 'role': 'user', 'content': message.message, 'created_at': timestamp,
+                'history_sent': messages,
+                'profile_sent': profile.get('form_preferences'),
+                'inferred_preferences_sent': profile.get('inferred_preferences'),
             }).execute()
             supabase.table('chat_logs').insert({
-                'user_id': user_id, 'role': 'assistant', 'content': ai_response, 'created_at': timestamp
+                'user_id': user_id, 'role': 'assistant', 'content': ai_response, 'created_at': timestamp,
+                'chunk_returned': doc_references,
             }).execute()
             _maybe_schedule_extractor(supabase, user_id)
         else:
@@ -215,20 +234,21 @@ async def get_chat_history(
     user_id: str = Depends(get_current_user_id)
 ):
     """
-    Get user's chat history
-    
-    Args:
-        limit: Maximum number of messages to return
-        user_id: Authenticated user ID
-        
-    Returns:
-        List of chat messages
+    Get user's chat history: the latest `limit` rows, then ordered oldest→newest for UI.
     """
     supabase = get_supabase()
     
     try:
-        response = supabase.table('chat_logs').select('*').eq('user_id', user_id).order('created_at', desc=False).limit(limit).execute()
-        # Same-turn user/assistant share created_at; sort by id so user (inserted first) comes before assistant
+        response = (
+            supabase.table('chat_logs')
+            .select('*')
+            .eq('user_id', user_id)
+            .order('created_at', desc=True)
+            .limit(limit)
+            .execute()
+        )
+        # Newest-first query → sort back to chronological for scrolling top→bottom.
+        # Same-turn rows share created_at; id orders user before assistant.
         messages = sorted(response.data or [], key=lambda r: (r.get('created_at') or '', r.get('id') or 0))
         return {"messages": messages}
     except Exception as e:
