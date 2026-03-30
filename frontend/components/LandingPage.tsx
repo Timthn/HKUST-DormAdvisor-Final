@@ -21,6 +21,31 @@ function hasFormPreferences(profile: UserProfile): boolean {
 
 type ModalView = 'login' | 'register' | 'verification_sent'
 
+function DataPolicyContent() {
+  return (
+    <div className="space-y-3 text-[12px] text-gray-700 leading-relaxed">
+      <div>
+        <h4 className="font-bold text-gray-900">隐私声明与数据政策</h4>
+        <p>数据收集：本系统收集您的宿舍偏好（如预算、房型、补充偏好信息）及交互对话记录。</p>
+        <p>使用目的：数据用于构建动态用户画像，通过 RAG 引擎及推理模型为您生成精准的 Top 3 推荐方案及决策逻辑。</p>
+        <p>处理与存储：您的数据通过 Supabase 加密存储。对话将由 FastAPI 后端传输至受信任的第三方模型（如阿里云百炼、ChatGPT）进行推理。</p>
+        <p>模型微调与学术研究：您的去标识化数据可能被用于小语言模型（SLM）的监督微调（SFT）或偏好优化（DPO），以提升宿舍推荐的专业性和语义理解能力。此外，数据将用于评估算法准确性。所有研究成果仅限 HKUST 毕业项目使用。</p>
+        <p>数据安全与匿名化：在任何模型训练或学术报告中，数据均会经过严格脱敏处理，确保无法追溯至个人身份（如姓名、邮件）。</p>
+        <p>您的权利：您可以随时通过联系我们，删除个人偏好设置及历史记录。</p>
+      </div>
+      <div>
+        <h4 className="font-bold text-gray-900">Privacy Statement and Data Policy</h4>
+        <p>Data Collection: This system collects your dormitory preferences (e.g., budget, room type, supplementary preference information) and interaction conversation logs.</p>
+        <p>Purpose of Use: Data is used to construct dynamic user profiles, generating precise Top 3 recommendation plans and decision logic through RAG engines and reasoning models.</p>
+        <p>Processing and Storage: Your data is encrypted and stored via Supabase. Conversations will be transmitted via a FastAPI backend to trusted third-party models (e.g., Alibaba Cloud Bailian, ChatGPT) for inference.</p>
+        <p>Model Fine-tuning and Academic Research: Your de-identified data may be used for supervised fine-tuning (SFT) or direct preference optimization (DPO) of small language models (SLM) to enhance the professionalism and semantic understanding of dormitory recommendations. Additionally, data will be used to evaluate algorithm accuracy. All research results are restricted to use within this HKUST Final Year Project.</p>
+        <p>Data Security and Anonymization: In any model training or academic reporting, data will undergo strict desensitization to ensure it cannot be traced back to personal identity (e.g., name, email).</p>
+        <p>Your Rights: You may contact us at any time to delete your personal preference settings and historical records.</p>
+      </div>
+    </div>
+  )
+}
+
 export default function LandingPage() {
   const router = useRouter()
   const [showModal, setShowModal] = useState(false)
@@ -32,6 +57,10 @@ export default function LandingPage() {
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
   const [showLoginPw, setShowLoginPw] = useState(false)
+  const [ackDataPolicy, setAckDataPolicy] = useState(false)
+  const [policyError, setPolicyError] = useState('')
+  const [showPolicyPopover, setShowPolicyPopover] = useState(false)
+  const [showPolicyModal, setShowPolicyModal] = useState(false)
 
   // Register state
   const [regEmail, setRegEmail] = useState('')
@@ -45,14 +74,26 @@ export default function LandingPage() {
     setView('login')
     setLoginError('')
     setRegError('')
+    setPolicyError('')
+    setShowPolicyPopover(false)
+    setShowPolicyModal(false)
     setShowModal(true)
   }
 
-  const closeModal = () => setShowModal(false)
+  const closeModal = () => {
+    setShowPolicyPopover(false)
+    setShowPolicyModal(false)
+    setShowModal(false)
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoginError('')
+    setPolicyError('')
+    if (!ackDataPolicy) {
+      setPolicyError('Please acknowledge the Data Policy.')
+      return
+    }
     setLoginLoading(true)
     try {
       const { error } = await signInWithEmail(loginEmail, loginPassword)
@@ -154,7 +195,7 @@ export default function LandingPage() {
                 <div className="w-14 h-14 bg-[#003366] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Home className="text-white" size={28} />
                 </div>
-                <h2 className="text-2xl font-bold text-[#003366] mb-1">HKUST Dorm</h2>
+                <h2 className="text-2xl font-bold text-[#003366] mb-1">HKUST DORM ADVISOR</h2>
                 <p className="text-gray-500 text-sm mb-7">Sign in with your ITSC account</p>
 
                 <form onSubmit={handleLogin}>
@@ -167,7 +208,7 @@ export default function LandingPage() {
                           type="text"
                           value={loginEmail}
                           onChange={(e) => setLoginEmail(e.target.value)}
-                          placeholder="chan@connect.ust.hk"
+                          placeholder="Your gmail or ITSC email"
                           required
                           className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none transition-all"
                         />
@@ -181,7 +222,7 @@ export default function LandingPage() {
                           type={showLoginPw ? 'text' : 'password'}
                           value={loginPassword}
                           onChange={(e) => setLoginPassword(e.target.value)}
-                          placeholder="••••••••"
+                          placeholder=""
                           required
                           className="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none transition-all"
                         />
@@ -189,6 +230,44 @@ export default function LandingPage() {
                           {showLoginPw ? <EyeOff size={17} /> : <Eye size={17} />}
                         </button>
                       </div>
+                    </div>
+
+                    <div className="mt-1 mb-1 relative">
+                      <div className="flex items-center gap-2 text-[11px] text-gray-600 leading-tight">
+                        <input
+                          id="ack-data-policy"
+                          type="checkbox"
+                          checked={ackDataPolicy}
+                          onChange={(e) => {
+                            setAckDataPolicy(e.target.checked)
+                            if (e.target.checked) setPolicyError('')
+                          }}
+                          className="h-3.5 w-3.5 rounded border-gray-300 accent-[#003366]"
+                        />
+                        <label htmlFor="ack-data-policy" className="cursor-pointer">
+                          I acknowledge the
+                        </label>
+                        <button
+                          type="button"
+                          className="font-semibold text-gray-800 underline underline-offset-2"
+                          onMouseEnter={() => setShowPolicyPopover(true)}
+                          onMouseLeave={() => setShowPolicyPopover(false)}
+                          onClick={() => setShowPolicyModal(true)}
+                        >
+                          Data Policy
+                        </button>
+                        <span>.</span>
+                      </div>
+                      {showPolicyPopover && (
+                        <div
+                          className="hidden md:block absolute z-20 left-20 top-6 w-[360px] max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 shadow-xl"
+                          onMouseEnter={() => setShowPolicyPopover(true)}
+                          onMouseLeave={() => setShowPolicyPopover(false)}
+                        >
+                          <DataPolicyContent />
+                        </div>
+                      )}
+                      {policyError && <p className="mt-1 text-[11px] text-red-500">{policyError}</p>}
                     </div>
 
                     {loginError && <p className="text-red-500 text-sm">{loginError}</p>}
@@ -206,7 +285,7 @@ export default function LandingPage() {
                 <div className="mt-6 pt-5 border-t border-gray-100 text-center">
                   <button
                     onClick={() => { setRegError(''); setView('register') }}
-                    className="text-sm text-gray-500 hover:text-[#003366] transition-colors font-medium"
+                    className="text-sm text-black hover:text-[#003366] transition-colors font-bold"
                   >
                     Create Account
                   </button>
@@ -220,7 +299,7 @@ export default function LandingPage() {
                 <div className="w-14 h-14 bg-[#003366] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Home className="text-white" size={28} />
                 </div>
-                <h2 className="text-2xl font-bold text-[#003366] mb-1">HKUST Dorm</h2>
+                <h2 className="text-2xl font-bold text-[#003366] mb-1">HKUST DORM ADVISOR</h2>
                 <p className="text-gray-500 text-sm mb-7">Create your student account</p>
 
                 <form onSubmit={handleRegister}>
@@ -233,7 +312,7 @@ export default function LandingPage() {
                           type="email"
                           value={regEmail}
                           onChange={(e) => setRegEmail(e.target.value)}
-                          placeholder="chan@connect.ust.hk"
+                          placeholder="Your gmail or ITSC email"
                           required
                           className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none transition-all"
                         />
@@ -247,7 +326,7 @@ export default function LandingPage() {
                           type={showRegPw ? 'text' : 'password'}
                           value={regPassword}
                           onChange={(e) => setRegPassword(e.target.value)}
-                          placeholder="••••••••"
+                          placeholder=""
                           required
                           className="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none transition-all"
                         />
@@ -264,7 +343,7 @@ export default function LandingPage() {
                           type="password"
                           value={regConfirm}
                           onChange={(e) => setRegConfirm(e.target.value)}
-                          placeholder="••••••••"
+                          placeholder=""
                           required
                           className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 outline-none transition-all"
                         />
@@ -320,6 +399,21 @@ export default function LandingPage() {
             )}
 
           </div>
+
+          {showPolicyModal && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/50" onClick={() => setShowPolicyModal(false)} />
+              <div className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-[#003366]">Data Policy</h3>
+                  <button type="button" onClick={() => setShowPolicyModal(false)} className="text-gray-500 hover:text-gray-700">
+                    <X size={18} />
+                  </button>
+                </div>
+                <DataPolicyContent />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
