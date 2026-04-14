@@ -1,10 +1,13 @@
 """
 Supabase Database Client
 """
+import asyncio
 from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
-from typing import Optional
+from typing import Callable, Optional, TypeVar
+
+T = TypeVar("T")
 
 load_dotenv()
 
@@ -46,3 +49,8 @@ def get_supabase() -> Optional[Client]:
 def get_dev_storage():
     """Get in-memory storage for development mode"""
     return _dev_storage
+
+
+async def db_exec(fn: Callable[[], T]) -> T:
+    """Run a synchronous Supabase call in a thread pool so it won't block the event loop."""
+    return await asyncio.to_thread(fn)

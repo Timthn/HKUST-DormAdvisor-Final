@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from app.services.bailian_service import get_recommend_bailian_service
-from app.database.supabase_client import get_supabase
+from app.database.supabase_client import get_supabase, db_exec
 
 RECOMMEND_SYSTEM_PROMPT = """You are a HKUST dormitory recommendation engine.
 Given a student's explicit form preferences and inferred hidden preferences (may be empty),
@@ -38,15 +38,14 @@ class RecommendationService:
         4. Persist result to profiles.last_recommendation
         5. Return enriched recommendation list
         """
-        # Step 1: fetch profile
         try:
-            profile_resp = (
+            profile_resp = await db_exec(lambda: (
                 self.supabase.table('profiles')
                 .select('form_preferences, inferred_preferences')
                 .eq('user_id', user_id)
                 .single()
                 .execute()
-            )
+            ))
             profile = profile_resp.data or {}
         except Exception as e:
             raise RuntimeError(f"Failed to fetch profile: {e}")
@@ -63,21 +62,20 @@ class RecommendationService:
             {"role": "user", "content": user_prompt}
         ]
 
-        raw_response, _ = await self.bailian.send_message(messages)
+        raw_response = await self.bailian.send_message(messages)
 
         # Step 3: parse JSON array from response
         ranked = self._parse_hall_json(raw_response)
         if not ranked:
             raise RuntimeError(f"Recommendation agent returned unparseable output: {raw_response[:300]}")
 
-        # Step 4: lookup halls table
         hall_ids = [str(item["hall_id"]) for item in ranked]
-        halls_resp = (
+        halls_resp = await db_exec(lambda: (
             self.supabase.table('halls')
             .select('hall_id, name, static_info')
             .in_('hall_id', hall_ids)
             .execute()
-        )
+        ))
         halls_by_id = {h['hall_id']: h for h in (halls_resp.data or [])}
 
         # Step 5: enrich
@@ -106,12 +104,13 @@ class RecommendationService:
                 "website_url": static.get('website_url'),
             })
 
-        # Step 6: persist to profiles.last_recommendation
         try:
-            self.supabase.table('profiles').update({
-                'last_recommendation': enriched,
-                'updated_at': datetime.now(timezone.utc).isoformat(),
-            }).eq('user_id', user_id).execute()
+            await db_exec(lambda: (
+                self.supabase.table('profiles').update({
+                    'last_recommendation': enriched,
+                    'updated_at': datetime.now(timezone.utc).isoformat(),
+                }).eq('user_id', user_id).execute()
+            ))
         except Exception as e:
             print(f"[recommend] Failed to save last_recommendation: {e}")
 

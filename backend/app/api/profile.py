@@ -4,7 +4,7 @@ User Profile API Endpoints
 from fastapi import APIRouter, Depends, HTTPException
 from app.models.schemas import ProfileUpdate, ProfileResponse
 from app.middleware.auth import get_current_user_id
-from app.database.supabase_client import get_supabase
+from app.database.supabase_client import get_supabase, db_exec
 from datetime import datetime, timezone
 
 router = APIRouter()
@@ -17,7 +17,9 @@ async def get_profile(
     """Get current user's profile"""
     supabase = get_supabase()
     try:
-        response = supabase.table('profiles').select('*').eq('user_id', user_id).single().execute()
+        response = await db_exec(
+            lambda: supabase.table('profiles').select('*').eq('user_id', user_id).single().execute()
+        )
         if not response.data:
             raise HTTPException(status_code=404, detail="Profile not found")
         return ProfileResponse(**response.data)
@@ -45,12 +47,12 @@ async def update_profile(
         update_data["form_preferences"] = profile.form_preferences.model_dump()
 
     try:
-        response = (
+        response = await db_exec(lambda: (
             supabase.table('profiles')
             .update(update_data)
             .eq('user_id', user_id)
             .execute()
-        )
+        ))
         if not response.data:
             raise HTTPException(status_code=404, detail="Profile not found. Ensure the DB trigger created the row.")
         return ProfileResponse(**response.data[0])

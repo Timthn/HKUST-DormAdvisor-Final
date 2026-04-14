@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from app.database.supabase_client import get_supabase
+from app.database.supabase_client import get_supabase, db_exec
 
 load_dotenv()
 
@@ -58,16 +58,15 @@ async def run_extractor(user_id: str) -> None:
         print("[extractor] DEEPSEEK_API_KEY not set, skipping.")
         return
 
-    # Fetch last 10 messages (≈5 turns, most recent first, then reverse for chronological order)
     try:
-        resp = (
+        resp = await db_exec(lambda: (
             supabase.table('chat_logs')
             .select('role, content')
             .eq('user_id', user_id)
             .order('created_at', desc=True)
             .limit(10)
             .execute()
-        )
+        ))
         messages_raw = list(reversed(resp.data or []))
     except Exception as e:
         print(f"[extractor] Failed to fetch chat_logs: {e}")
@@ -90,7 +89,7 @@ async def run_extractor(user_id: str) -> None:
             base_url="https://api.deepseek.com",
         )
         response = await client.chat.completions.create(
-            model="deepseek-chat",
+            model="deepseek-v3.2",
             messages=[
                 {"role": "system", "content": EXTRACTOR_SYSTEM_PROMPT},
                 {"role": "user", "content": f"Conversation:\n{conversation_text}"},
@@ -103,11 +102,12 @@ async def run_extractor(user_id: str) -> None:
         print(f"[extractor] DeepSeek API call failed: {e}")
         return
 
-    # Write to profiles.inferred_preferences
     try:
-        supabase.table('profiles').update({
-            'inferred_preferences': inferred
-        }).eq('user_id', user_id).execute()
+        await db_exec(lambda: (
+            supabase.table('profiles').update({
+                'inferred_preferences': inferred
+            }).eq('user_id', user_id).execute()
+        ))
         print(f"[extractor] Updated inferred_preferences for user {user_id}")
     except Exception as e:
         print(f"[extractor] Failed to write inferred_preferences: {e}")
