@@ -1,7 +1,7 @@
 """
 Extractor Service
 Analyses chat history to infer hidden user preferences using DeepSeek.
-Triggered asynchronously from chat.py after every 5 completed turns (user question + assistant answer).
+Triggered asynchronously from chat.py after every 3 completed turns (user question + assistant answer).
 """
 import os
 from dotenv import load_dotenv
@@ -49,7 +49,7 @@ If no strong signals are present, write exactly: "No strong hidden preferences i
 async def run_extractor(user_id: str) -> None:
     """
     Entry point called as an asyncio background task from chat.py.
-    Fetches the last 5 turns (≈10 chat messages), calls DeepSeek, updates profiles.inferred_preferences.
+    Fetches the last 3 turns (≈6 chat messages), calls DeepSeek, updates profiles.inferred_preferences.
     """
     supabase = get_supabase()
     api_key = os.getenv("DEEPSEEK_API_KEY")
@@ -64,7 +64,7 @@ async def run_extractor(user_id: str) -> None:
             .select('role, content')
             .eq('user_id', user_id)
             .order('created_at', desc=True)
-            .limit(10)
+            .limit(6)
             .execute()
         ))
         messages_raw = list(reversed(resp.data or []))

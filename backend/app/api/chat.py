@@ -88,7 +88,7 @@ async def _get_recent_chat_messages(supabase, user_id: str, limit: int = 10) -> 
 
 async def _maybe_schedule_extractor(supabase, user_id: str) -> None:
     """
-    Trigger DeepSeek extractor as a background task every 5 completed turns
+    Trigger DeepSeek extractor as a background task every 3 completed turns
     (user question + assistant answer) for the given user.
     We approximate turn count by the number of assistant messages.
     """
@@ -105,7 +105,7 @@ async def _maybe_schedule_extractor(supabase, user_id: str) -> None:
         total_assistant_msgs = getattr(resp, "count", None)
         if not isinstance(total_assistant_msgs, int):
             return
-        if total_assistant_msgs % 5 == 0 and total_assistant_msgs > 0:
+        if total_assistant_msgs % 3 == 0 and total_assistant_msgs > 0:
             asyncio.create_task(run_extractor(user_id))
     except Exception as e:
         print(f"[extractor-trigger] Failed to schedule extractor: {e}")
