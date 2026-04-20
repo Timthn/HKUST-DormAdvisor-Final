@@ -23,6 +23,7 @@ class BailianService:
         self.api_key = os.getenv("BAILIAN_API_KEY")
         self.app_id = app_id
         self.completion_url = f"{BAILIAN_BASE}/apps/{self.app_id}/completion"
+        self._last_doc_references: List[Dict[str, Any]] = []
         if not self.api_key:
             raise ValueError("BAILIAN_API_KEY must be set")
         if not self.app_id:
@@ -59,10 +60,10 @@ class BailianService:
         self,
         messages: List[Dict[str, str]],
         memory_id: Optional[str] = None,
-    ) -> str:
+    ) -> tuple[str, List[Dict[str, Any]]]:
         """
         Non-streaming call. Used for recommendation agent.
-        Returns the full response text.
+        Returns a tuple: (full response text, doc_references).
         """
         payload = self._build_payload(messages, memory_id, incremental=False)
         try:
@@ -76,7 +77,10 @@ class BailianService:
                     err = response.text
                     raise RuntimeError(f"Bailian API error {response.status_code}: {err}")
                 data = response.json()
-                return data.get("output", {}).get("text", "")
+                output = data.get("output", {})
+                text = output.get("text", "")
+                doc_references = output.get("doc_references", []) or []
+                return text, doc_references
         except httpx.TimeoutException:
             raise RuntimeError("Bailian request timed out")
 
@@ -96,6 +100,7 @@ class BailianService:
         """
         payload = self._build_payload(messages, memory_id, incremental=True)
         headers = {**self._base_headers(), "X-DashScope-SSE": "enable"}
+        self._last_doc_references = []
 
         async with httpx.AsyncClient(timeout=120.0) as client:
             async with client.stream(
@@ -118,6 +123,9 @@ class BailianService:
                             if text:
                                 yield text
                             if finish == "stop":
+                                self._last_doc_references = (
+                                    data.get("output", {}).get("doc_references", []) or []
+                                )
                                 return
                         except json.JSONDecodeError:
                             continue
