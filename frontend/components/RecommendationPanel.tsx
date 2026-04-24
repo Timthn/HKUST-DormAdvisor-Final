@@ -106,7 +106,7 @@ export default function RecommendationPanel({
                 <p className="text-sm text-[#2b5dad] font-medium animate-pulse">AI is analyzing your needs...</p>
               </>
             ) : (
-              <p className="text-sm">Waiting for analysis...</p>
+              <p className="text-sm">Waiting for analysis...Please refresh the page if you have waited for more than 90s</p>
             )}
           </div>
         ) : (
