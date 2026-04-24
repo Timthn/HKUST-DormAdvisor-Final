@@ -136,6 +136,12 @@ export default function ChatPage() {
           timestamp: Date.now(),
         }])
       } else {
+        setMessages(prev => [...prev, {
+          id: Date.now(),
+          sender: 'bot',
+          text: "The system is generating your initial recommendations. While you wait, feel free to ask me any questions about dorm facilities and policies!",
+          timestamp: Date.now(),
+        }])
         await generateRecommendations()
       }
     } catch (error) {
@@ -269,7 +275,7 @@ export default function ChatPage() {
       setMessages(prev => [...prev, {
         id: Date.now(),
         sender: 'bot',
-        text: "Could not refresh recommendations. The list on the right is unchanged. Please try again.",
+        text: "Sorry, something went wrong while refreshing recommendations. Your current list is unchanged. Please click Refresh to try again.",
         timestamp: Date.now(),
       }])
     } finally {
