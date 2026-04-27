@@ -83,6 +83,93 @@ def _build_context_prompt(profile: dict, user_message: str) -> str:
     return f"{context}\n\n[User Question]\n{user_message}"
 
 
+def _format_recent_history_for_prompt(
+    history: list,
+    max_turns: int = 3,
+    max_chars_user: int = 120,
+    max_chars_assistant: int = 70,
+) -> str:
+    """
+    Build a compact turn-based recent-history section for prompt injection.
+    Keeps only recent user-assistant turns to control token usage.
+    """
+    if not isinstance(history, list) or not history:
+        return ""
+
+    normalized_rows = []
+    for row in history:
+        if not isinstance(row, dict):
+            continue
+        role_raw = str(row.get("role") or "user").strip().lower()
+        if role_raw not in ("user", "assistant"):
+            continue
+        content = str(row.get("content") or "").strip()
+        if not content:
+            continue
+
+        # Compact noisy formatting to reduce prompt tokens while preserving intent.
+        content = re.sub(r"\n?\s*\[\^[0-9]+\]:\s*[^\n]*(?=\n|$)", " ", content)
+        content = re.sub(r"\[\^[0-9]+\]", "", content)
+        content = re.sub(r"https?://\S+", " ", content)
+        content = re.sub(r"\|[^\n]*\|", " ", content)
+        content = re.sub(r"\s+", " ", content).strip()
+        if not content:
+            continue
+
+        normalized_rows.append({"role": role_raw, "content": content})
+
+    if not normalized_rows:
+        return ""
+
+    # Pair rows into turns: each user message followed by the next assistant response.
+    turns = []
+    i = 0
+    while i < len(normalized_rows):
+        row = normalized_rows[i]
+        if row["role"] != "user":
+            i += 1
+            continue
+
+        user_text = row["content"]
+        assistant_text = ""
+        j = i + 1
+        while j < len(normalized_rows):
+            if normalized_rows[j]["role"] == "assistant":
+                assistant_text = normalized_rows[j]["content"]
+                break
+            if normalized_rows[j]["role"] == "user":
+                break
+            j += 1
+
+        if len(user_text) > max_chars_user:
+            user_text = f"{user_text[:max_chars_user].rstrip()}..."
+        if assistant_text and len(assistant_text) > max_chars_assistant:
+            assistant_text = f"{assistant_text[:max_chars_assistant].rstrip()}..."
+
+        turns.append((user_text, assistant_text))
+        i = max(i + 1, j + 1 if assistant_text else i + 1)
+
+    if not turns:
+        return ""
+
+    lines = ["[Recent Conversation History]"]
+    for idx, (user_text, assistant_text) in enumerate(turns[-max_turns:], 1):
+        if assistant_text:
+            lines.append(f"{idx}. User asked: {user_text} | Assistant replied: {assistant_text}")
+        else:
+            lines.append(f"{idx}. User asked: {user_text} | Assistant replied: (no reply yet)")
+    return "\n".join(lines)
+
+
+def _build_context_prompt_with_history(profile: dict, user_message: str, history: list | None = None) -> str:
+    """Compose base user context prompt and optionally append compact recent history."""
+    base_prompt = _build_context_prompt(profile, user_message)
+    history_block = _format_recent_history_for_prompt(history or [])
+    if not history_block:
+        return base_prompt
+    return f"{base_prompt}\n\n{history_block}"
+
+
 def _strip_footnote_references(text: str) -> str:
     """Remove Bailian-style footnote refs: [^0], [^1], ... and definition lines [^n]: [title](url)."""
     if not text or not text.strip():
@@ -156,12 +243,16 @@ async def stream_chat_message(
     # We no longer attempt to create a new memory_id here to avoid API errors.
     memory_id = profile.get("memory_id")
 
-    context_prompt = _build_context_prompt(profile, message.message)
-
     # Multi-turn: fetch chat_logs → history (list of {role, content}) → append new user query → send to Bailian
     history = _get_recent_chat_messages(supabase, user_id, limit=10)
+    context_prompt = _build_context_prompt_with_history(profile, message.message, history=history)
     msgs = history + [{"role": "user", "content": context_prompt}]
+    history_chars = sum(len((m.get("content") or "")) for m in history if isinstance(m, dict))
     print(f"[stream] Sending to Bailian: {len(history)} history + 1 current = {len(msgs)} messages")
+    print(
+        f"[stream] Prompt stats: history_count={len(history)}, "
+        f"history_chars={history_chars}, context_chars={len(context_prompt)}"
+    )
 
     turn_ts = datetime.now(timezone.utc).isoformat()
 
@@ -223,9 +314,14 @@ async def send_chat_message(
         # We intentionally no longer create a new memory_id here.
         memory_id = profile.get("memory_id")
 
-        context_prompt = _build_context_prompt(profile, message.message)
         history = _get_recent_chat_messages(supabase, user_id, limit=10)
+        context_prompt = _build_context_prompt_with_history(profile, message.message, history=history)
         messages = history + [{"role": "user", "content": context_prompt}]
+        history_chars = sum(len((m.get("content") or "")) for m in history if isinstance(m, dict))
+        print(
+            f"[chat] Prompt stats: history_count={len(history)}, "
+            f"history_chars={history_chars}, context_chars={len(context_prompt)}"
+        )
 
         ai_response_text, doc_references = await bailian.send_message(messages, memory_id=memory_id)
         ai_response = _strip_footnote_references(ai_response_text)
