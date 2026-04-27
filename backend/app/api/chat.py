@@ -22,29 +22,60 @@ def _fetch_profile(supabase, user_id: str) -> dict:
         try:
             resp = supabase.table('profiles').select('*').eq('user_id', user_id).single().execute()
             if resp.data:
-                return resp.data
+                data = resp.data
+                fp = data.get('form_preferences') or {}
+                # Backward-compatible normalization so prompt builder can rely on both
+                # new form_preferences fields and legacy flat/profile keys.
+                data.setdefault('identity', fp.get('identity'))
+                data.setdefault('gender', fp.get('gender'))
+                data.setdefault('budget_range', fp.get('budget_range'))
+                data.setdefault('room_types', fp.get('room_types') or [])
+                data.setdefault('priorities', fp.get('priorities') or [])
+                data.setdefault('additional_info', fp.get('additional_info'))
+                return data
         except Exception:
             pass
-    return {
+    fallback_fp = {
         'identity': 'Undergraduate (Dev)',
+        'gender': None,
         'budget_range': 'HK$ 15000 - 20000',
-        'preferences': {'room_types': ['Single Room'], 'priorities': ['Price']},
+        'room_types': ['Single Room'],
+        'priorities': ['Price'],
+        'additional_info': None,
+    }
+    return {
+        'identity': fallback_fp['identity'],
+        'gender': fallback_fp['gender'],
+        'budget_range': fallback_fp['budget_range'],
+        'room_types': fallback_fp['room_types'],
+        'priorities': fallback_fp['priorities'],
+        # Keep legacy fallback shape to avoid any implicit dependency breakage.
+        'preferences': {'room_types': fallback_fp['room_types'], 'priorities': fallback_fp['priorities']},
+        'form_preferences': fallback_fp,
+        'inferred_preferences': '',
     }
 
 
 def _build_context_prompt(profile: dict, user_message: str) -> str:
     fp = profile.get('form_preferences') or {}
-    identity = fp.get('identity') or profile.get('identity', 'Student')
-    budget = fp.get('budget_range') or profile.get('budget_range', 'Not specified')
-    preferences = fp.get('priorities') or profile.get('preferences', {})
+    identity = fp.get('identity') or profile.get('identity') or 'Student'
+    gender = fp.get('gender') or profile.get('gender') or 'Not specified'
+    budget = fp.get('budget_range') or profile.get('budget_range') or 'Not specified'
+    room_types = fp.get('room_types') or profile.get('room_types') or profile.get('preferences', {}).get('room_types') or []
+    priorities = fp.get('priorities') or profile.get('priorities') or profile.get('preferences', {}).get('priorities') or []
+    additional_info = fp.get('additional_info') or profile.get('additional_info') or ''
     inferred = profile.get('inferred_preferences') or ''
 
     context_lines = [
         "[User Context]",
         f"- Identity: {identity}",
+        f"- Gender: {gender}",
         f"- Budget: {budget}",
-        f"- Preferences: {preferences}",
+        f"- Room Types: {', '.join(room_types) if isinstance(room_types, list) and room_types else 'Any'}",
+        f"- Priorities: {', '.join(priorities) if isinstance(priorities, list) and priorities else 'Any'}",
     ]
+    if isinstance(additional_info, str) and additional_info.strip():
+        context_lines.append(f"- Additional Info: {additional_info}")
     if isinstance(inferred, str) and inferred.strip():
         context_lines.append(f"- Inferred Preferences: {inferred}")
 
