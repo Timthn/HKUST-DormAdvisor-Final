@@ -21,7 +21,7 @@ Format strictly:
 ]
 Valid hall_id values are string identifiers for HKUST student halls (e.g. "1", "2", ..., "9", "JCH").
 Do not include any text before or after the JSON array."""
-## system prompt has been added to bailian services 
+# system prompt has been added to bailian services 
 
 class RecommendationService:
 
