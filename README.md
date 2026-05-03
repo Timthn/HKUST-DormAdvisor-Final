@@ -2,8 +2,8 @@
 
 <div align="center">
 
-**AI驱动的香港科技大学宿舍推荐系统**  
-**AI-Powered HKUST Dormitory Recommendation System**
+**RAG驱动的香港科技大学宿舍推荐系统**  
+**RAG -Powered HKUST Dormitory Recommendation System (HKUST Dorm Advisor)**
 
 *基于 Alibaba Cloud Bailian + Next.js + FastAPI + Supabase 构建*
 
@@ -653,11 +653,11 @@ npm run build
 
 ### 规划中 | Planned
 
-- [ ] RAG 知识库检索 | RAG Knowledge Base
+- [ ] 自建RAG 知识库检索 |Self developed  RAG Knowledge Base and pipeline
 - [ ] 多会话聊天历史 | Multi-session History（当前已支持单用户多轮对话与历史持久化）
 - [ ] 高级用户画像 | Advanced Profiling
 - [ ] 云端聊天记录同步 | Cloud Chat Sync
-- [ ] 多语言支持（英文/中文）| Multi-language Support
+- [ ] 多语言支持（英文/中文） UI | Multi-language Support UI
 
 ---
 
@@ -805,13 +805,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 - **项目仓库 | Repository**: [GitHub](https://github.com/Timthn/HKUST_DormAdvisor_v20260202)
 - **问题追踪 | Issue Tracker**: [GitHub Issues](https://github.com/Timthn/HKUST_DormAdvisor_v20260202/issues)
-- **项目负责人 | Project Lead**: [Project Team]
+- **项目负责人 | Project Lead**: IEDA fyp GROUP thnganaa@connect.ust.hk 
 
 ---
 
-<div align="center">
-
-**用心打造，为科大学生服务**  
-**Made for HKUST Students**
-
-</div>
