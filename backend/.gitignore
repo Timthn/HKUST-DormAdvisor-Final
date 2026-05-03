@@ -5,6 +5,7 @@ __pycache__/
 *.so
 .Python
 venv/
+.venv/
 env/
 ENV/
 
@@ -39,3 +40,10 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+.ruff_cache/
+
+# Packaging / wheels (if you ever build local packages)
+*.egg-info/
+dist/
+build/
+*.egg

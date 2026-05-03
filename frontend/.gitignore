@@ -36,3 +36,11 @@ coverage/
 
 # Misc
 *.pem
+
+# TypeScript / tooling caches
+*.tsbuildinfo
+.eslintcache
+.turbo
+
+# Vercel (per-package deploy from frontend/)
+.vercel
