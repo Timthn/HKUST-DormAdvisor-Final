@@ -93,14 +93,33 @@
 
 #### 3. 设置环境变量
 
-点击 "Environment" 添加以下变量：
+点击 "Environment" 添加以下变量（与 `backend/.env.example` 一致；**生产环境务必将 `DEV_MODE` 设为 `false`**）：
+
+| 变量 | 说明 |
+|------|------|
+| `BAILIAN_API_KEY` | 阿里云百炼 API Key |
+| `BAILIAN_APP_ID_CHAT` | 对话 Agent 应用 ID |
+| `BAILIAN_APP_ID_RECOMMEND` | 推荐 Agent 应用 ID |
+| `DEEPSEEK_API_KEY` | Extractor 模块（隐性偏好）使用的 DeepSeek API Key |
+| `DEV_MODE` | 生产必须 `false`（为 `true` 时后端不连接 Supabase，仅适合本地无库联调） |
+| `SUPABASE_URL` | Supabase 项目 URL |
+| `SUPABASE_KEY` | 后端使用 Supabase 客户端时读取此变量；生产部署建议使用 **service_role** key（服务端写 `chat_logs` / `profiles`）。勿将 service role 暴露给浏览器；`.env.example` 中的 `SUPABASE_SERVICE_KEY` 为预留别名，当前 Python 代码仅以 `SUPABASE_KEY` 创建客户端 |
+| `JWT_SECRET` | 须与 Supabase Dashboard → Settings → API → **JWT Secret** 完全一致（HS256 校验用） |
+| `JWT_ALGORITHM` | 可选，默认 `HS256`；若使用 JWKS 校验 RS256/ES256，仍需配置 `SUPABASE_URL` |
+| `FRONTEND_URL` | 前端线上地址，用于 CORS（须与 Vercel 实际域名一致，含 `https://`） |
+| `HOST` / `PORT` | 可选；Render 通常由平台注入 `PORT`，Start Command 已使用 `$PORT` |
+
+示例（值请替换）：
 
 ```
+DEV_MODE=false
 BAILIAN_API_KEY=your_bailian_api_key
-BAILIAN_APP_ID=your_app_id
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_service_key
-JWT_SECRET=your_random_secret_key_at_least_32_chars
+BAILIAN_APP_ID_CHAT=your_chat_app_id
+BAILIAN_APP_ID_RECOMMEND=your_recommend_app_id
+DEEPSEEK_API_KEY=your_deepseek_api_key
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_KEY=your_supabase_service_role_key
+JWT_SECRET=your_supabase_jwt_secret_same_as_dashboard
 FRONTEND_URL=https://your-vercel-app.vercel.app
 ```
 
@@ -128,7 +147,7 @@ FRONTEND_URL=https://your-vercel-app.vercel.app
 
 #### 3. 设置环境变量
 
-点击 "Variables" 添加与 Render 相同的环境变量。
+点击 "Variables" 添加上表与 Render **相同**的环境变量（含双百炼 App ID、`DEEPSEEK_API_KEY`、`DEV_MODE=false` 等）。
 
 #### 4. 部署
 
@@ -163,7 +182,10 @@ Railway 自动部署。复制生成的服务 URL。
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_API_URL=https://your-backend-url.onrender.com
+NEXT_PUBLIC_DEV_MODE=false
 ```
+
+`NEXT_PUBLIC_DEV_MODE` 生产环境应为 `false`，否则前端可能跳过登录逻辑；与后端 `DEV_MODE` 配合使用。
 
 ### 4. 部署
 
@@ -338,11 +360,11 @@ Supabase 提供：
 
 ## 安全检查清单
 
-- [ ] 所有环境变量已设置
-- [ ] JWT_SECRET 使用强随机密钥
+- [ ] 所有环境变量已设置（含双百炼 App、`DEEPSEEK_API_KEY`、生产 `DEV_MODE=false`）
+- [ ] `JWT_SECRET` 与 Supabase JWT Secret 一致；service role 仅在后端环境使用
 - [ ] Supabase RLS 策略已启用
-- [ ] CORS 仅允许前端域名
-- [ ] API 限流已配置
+- [ ] CORS 仅允许前端域名（`FRONTEND_URL`）
+- [ ] 如需 API 限流，在网关或托管平台侧配置（应用内未内置）
 - [ ] HTTPS 已启用
 - [ ] 敏感信息不在代码中
 
@@ -405,5 +427,3 @@ Supabase 提供：
 - **Supabase**: https://supabase.com/support
 
 ---
-
-**部署愉快！🚀**

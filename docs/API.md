@@ -4,11 +4,15 @@
 
 **Base URL**: `http://localhost:8000` (开发环境)
 
-**认证**: 所有受保护的 API 都需要在 Header 中携带 JWT Token：
+**认证**: 生产环境下，受保护接口需在 Header 携带 Supabase 签发的 JWT：
 
 ```
 Authorization: Bearer <your_jwt_token>
 ```
+
+后端校验逻辑见 `middleware/auth.py`：支持 **RS256 / ES256**（通过 `SUPABASE_URL` 拉取 JWKS）或 **HS256**（使用与 Supabase Dashboard 一致的 `JWT_SECRET`）。
+
+**开发模式**：若后端设置 `DEV_MODE=true` 且请求未带 `Authorization`，将使用固定测试用户 `test-user-123`（此时可不传 Token；不适合生产）。
 
 ---
 
@@ -52,15 +56,38 @@ data: {"error": "错误描述"}
 ```
 
 **说明**:
-- **多轮对话**：后端从 `chat_logs` 读取该用户最近 10 条消息（按 `created_at`、`id` 排序），与当前轮的 context（用户身份/预算/偏好 + 用户问题）一起组成 `messages` 发送给百炼，因此“再说多一点”等追问会带上文。
-- 用户消息在流式传输**开始前**插入 `chat_logs`
-- AI 完整回复在流式传输**结束后**经过去除脚注引用（如 `[^0]`）再插入 `chat_logs`
-- 后端自动处理 `memory_id` 懒初始化（首次对话时调用 Bailian CreateMemory API）
+- **多轮对话**：从 `chat_logs` 读取该用户最近最多 **10** 条消息参与拼接；当前用户消息的正文内还会附带 **压缩后的最近 3 轮**对话摘要（控制 token，见 `chat.py`）。
+- 用户消息在流式传输**开始前**插入 `chat_logs`（可含 `history_sent`、`profile_sent`、`inferred_preferences_sent` 等审计字段，见 `DATABASE.md`）。
+- AI 完整回复在流式传输**结束后**经过去除脚注引用（如 `[^0]`）再插入 `chat_logs`（助手行可含 `chunk_returned`）。
+- **`memory_id`**：仅当 `profiles.memory_id` 已存在时传给百炼；后端**不会**在此处新建 memory。
 
 **状态码**:
 - `200`: 成功（流式响应）
 - `401`: 未授权（Token 无效）
 - `500`: 服务器错误
+
+---
+
+### POST /api/chat/
+
+非流式聊天（与 `/stream` 使用相同的多轮历史与上下文拼装逻辑）。响应为 JSON，适用于不需要 SSE 的客户端。
+
+**Request Body**: 同 `POST /api/chat/stream`
+```json
+{
+  "message": "Hall I 有海景吗？"
+}
+```
+
+**Response** (`application/json`):
+```json
+{
+  "answer": "是的，Hall I 高层房间可以看到部分海景...",
+  "timestamp": "2026-02-09T12:00:05.123456"
+}
+```
+
+**状态码**: `200` / `401` / `500`（同流式接口语义）
 
 ---
 
@@ -71,7 +98,8 @@ data: {"error": "错误描述"}
 **Query Parameters**:
 - `limit` (可选): 返回的消息条数上限，默认 50（最新 N 条）
 
-**Response**:
+**Response**: 后端对 `chat_logs` 使用 `select('*')`，除下方示例外，还可能包含 `history_sent`、`profile_sent`、`inferred_preferences_sent`、`chunk_returned` 等列（见 `DATABASE.md`）。前端可只使用 `id`、`role`、`content`、`created_at`。
+
 ```json
 {
   "messages": [
@@ -159,8 +187,9 @@ data: {"error": "错误描述"}
 **状态码**:
 - `200`: 成功
 - `401`: 未授权
-- `404`: 用户画像不存在
-- `500`: 服务器错误
+- `500`: 服务器错误（推荐 Agent 输出无法解析、画像读取失败等均以错误详情返回）
+
+> 说明：推荐接口当前实现未单独返回 `404`；画像或推荐流程失败时多为 `500`。
 
 ---
 
@@ -266,20 +295,21 @@ data: {"error": "错误描述"}
 
 ## 错误响应格式
 
-所有错误响应都遵循以下格式：
+FastAPI 默认错误体一般为：
 
 ```json
 {
-  "detail": "Error message here",
-  "error_code": "OPTIONAL_ERROR_CODE"
+  "detail": "Error message or validation detail"
 }
 ```
 
-### 常见错误码
+校验失败（如请求体不符合 Schema）时，`detail` 可能为字段错误列表。
 
-- `401 Unauthorized`: Token 无效或过期
-- `404 Not Found`: 资源不存在
-- `422 Validation Error`: 请求参数验证失败
+### 常见 HTTP 状态
+
+- `401 Unauthorized`: Token 无效、过期或未提供（非 DEV_MODE）
+- `404 Not Found`: 资源不存在（如 `GET /api/profile/` 无画像行）
+- `422 Unprocessable Entity`: 请求参数 / Body 校验失败
 - `500 Internal Server Error`: 服务器内部错误
 
 ---
@@ -345,8 +375,8 @@ await fetch(`${API_URL}/api/profile/`, {
 
 ## 限流和配额
 
-- **每用户**: 100 请求/分钟
-- **百炼 API**: 根据阿里云配额限制
+- **本仓库后端**：未内置按用户限流中间件；若需限制 QPS，请在 **反向代理 / API 网关**（或托管平台规则）上配置。
+- **百炼 / DeepSeek**：按各云厂商账号配额与计费策略限制。
 
 ---
 
@@ -354,3 +384,5 @@ await fetch(`${API_URL}/api/profile/`, {
 
 - **v2.0.0** (2026-02-09): 前后端分离架构，完整 RESTful API
 - **v1.0.0** (2025-11-30): 原型版本（单体应用）
+
+文档修订说明：与当前 `main.py`、`chat.py`、`recommend.py`、`middleware/auth.py` 行为对齐（双百炼 App、`memory_id` 策略、`chat_logs` 扩展列、非流式 `POST /api/chat/` 等）。

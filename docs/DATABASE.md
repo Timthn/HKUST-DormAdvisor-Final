@@ -14,15 +14,15 @@
 └────────┬────────┘
          │ DB Trigger (on INSERT → auto-create profile)
          ↓
-┌──────────────────────────┐         1:N         ┌─────────────────┐
-│         profiles         │──────────────────────→│   chat_logs     │
-│  - user_id (PK, FK)      │                       │  - id           │
-│  - form_preferences      │                       │  - user_id (FK) │
-│  - inferred_preferences  │                       │  - role         │
-│  - memory_id             │                       │  - content      │
-│  - last_recommendation   │                       │  - created_at   │
-│  - updated_at            │                       └─────────────────┘
-└──────────────────────────┘
+┌──────────────────────────┐         1:N         ┌──────────────────────────────┐
+│         profiles         │──────────────────────→│   chat_logs                  │
+│  - user_id (PK, FK)      │                       │  - id, user_id, role, content│
+│  - form_preferences      │                       │  - created_at                │
+│  - inferred_preferences  │                       │  - history_sent (JSONB)      │
+│  - memory_id             │                       │  - profile_sent (JSONB)      │
+│  - last_recommendation   │                       │  - inferred_preferences_sent │
+│  - updated_at            │                       │  - chunk_returned (JSONB)    │
+└──────────────────────────┘                       └──────────────────────────────┘
 
 ┌──────────────────────────┐
 │          halls           │  (静态数据，管理员维护)
@@ -129,7 +129,7 @@ WHERE user_id = '550e8400-e29b-41d4-a716-446655440000';
 
 ### 2. chat_logs 表（聊天历史）
 
-存储用户与 AI 的所有对话记录。
+存储用户与 AI 的所有对话记录。除 `content` 外，另存**当轮**发给 Bailian 的上下文与 RAG 引用，便于审计与排错（由 `backend/app/api/chat.py` 写入）。
 
 ```sql
 CREATE TABLE chat_logs (
@@ -154,24 +154,40 @@ CREATE INDEX idx_chat_logs_user_time ON chat_logs(user_id, created_at DESC);
 
 #### 字段说明
 
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | BIGSERIAL | PRIMARY KEY | 自增主键 |
-| `user_id` | UUID | NOT NULL, FK | 关联 profiles 表 |
-| `role` | TEXT | CHECK | 'user' 或 'assistant' |
-| `content` | TEXT | NOT NULL | 消息内容 |
-| `history_sent` | JSONB | nullable | 该轮发给 Bailian 的消息数组（含历史 + 当前问题上下文） |
-| `profile_sent` | JSONB | nullable | 该轮发送时用户的 `form_preferences` 快照 |
-| `inferred_preferences_sent` | TEXT | nullable | 该轮发送时用户的 `inferred_preferences`；为空则为 NULL |
-| `chunk_returned` | JSONB | nullable | Bailian 返回的 RAG `doc_references` 引用片段 |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | 创建时间 |
+| 字段 | 类型 | 约束 | 写入侧 | 说明 |
+|------|------|------|--------|------|
+| `id` | BIGSERIAL | PRIMARY KEY | 自动 | 自增主键 |
+| `user_id` | UUID | NOT NULL, FK | 两列都有 | 关联 `profiles.user_id` |
+| `role` | TEXT | CHECK | 两列都有 | `user` 或 `assistant` |
+| `content` | TEXT | NOT NULL | 两列都有 | 用户原文；助手端为经过去脚注处理后的完整回复 |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | 两列都有 | 创建时间；同一轮对话中 user/assistant 可使用相同时间戳 |
+| `history_sent` | JSONB | nullable | **仅 `user` 行** | 当轮请求 Bailian 时组装的 `messages` 数组（含 `chat_logs` 拉取的历史 + 带 `[User Context]` 等的当条 user 内容） |
+| `profile_sent` | JSONB | nullable | **仅 `user` 行** | 当轮 `form_preferences` 快照（与 `profiles.form_preferences` 一致） |
+| `inferred_preferences_sent` | TEXT | nullable | **仅 `user` 行** | 当轮 `inferred_preferences` 快照（与 `profiles` 同语义） |
+| `chunk_returned` | JSONB | nullable | **仅 `assistant` 行** | Bailian 返回的 RAG `doc_references` 列表；流式路径来自 `BailianService._last_doc_references` |
 
 #### 示例数据
 
 ```sql
+-- 最简插入（无审计列，仅测试外键与 RLS）
 INSERT INTO chat_logs (user_id, role, content) VALUES
 ('550e8400-e29b-41d4-a716-446655440000', 'user', 'Hall I 有海景吗？'),
 ('550e8400-e29b-41d4-a716-446655440000', 'assistant', '是的，Hall I 高层房间可以看到部分海景...');
+
+-- 与线上一致时，user 行会带 history / profile 快照，assistant 行会带 chunk_returned（由后端自动插入，一般不必手写）
+```
+
+#### 已有旧表时：添加扩展列
+
+若你的 `chat_logs` 仍只有 `id, user_id, role, content, created_at`，在 Supabase SQL Editor 中执行：
+
+```sql
+ALTER TABLE chat_logs
+  ADD COLUMN IF NOT EXISTS history_sent JSONB,
+  ADD COLUMN IF NOT EXISTS profile_sent JSONB,
+  ADD COLUMN IF NOT EXISTS inferred_preferences_sent TEXT,
+  ADD COLUMN IF NOT EXISTS chunk_returned JSONB;
+-- 如 created_at 需与线上一致可显式传 ISO 时间，否则用 DEFAULT NOW()
 ```
 
 ---
@@ -338,6 +354,7 @@ CREATE TRIGGER update_profiles_updated_at
 -- ============================================
 -- HKUST Dorm Advisor 数据库初始化脚本 v2
 -- 2026-03-01 更新：新 profiles 架构 + halls 表 + DB Trigger
+-- chat_logs 含审计列：history_sent, profile_sent, inferred_preferences_sent, chunk_returned
 -- ============================================
 
 -- 1. 创建 profiles 表
@@ -480,7 +497,11 @@ WHERE p.user_id = '550e8400-e29b-41d4-a716-446655440000';
 SELECT 
   role,
   content,
-  created_at
+  created_at,
+  history_sent,
+  profile_sent,
+  inferred_preferences_sent,
+  chunk_returned
 FROM chat_logs
 WHERE user_id = '550e8400-e29b-41d4-a716-446655440000'
 ORDER BY created_at DESC
@@ -538,13 +559,6 @@ pg_dump -h <supabase-host> -U postgres -d postgres > backup.sql
 ```bash
 psql -h <supabase-host> -U postgres -d postgres < backup.sql
 ```
-
----
-
-#
-
----
-
 
 ---
 

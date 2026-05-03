@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**🏠 AI驱动的香港科技大学宿舍推荐系统**  
+**AI驱动的香港科技大学宿舍推荐系统**  
 **AI-Powered HKUST Dormitory Recommendation System**
 
 *基于 Alibaba Cloud Bailian + Next.js + FastAPI + Supabase 构建*
@@ -16,43 +16,43 @@
 
 ---
 
-## 📖 目录 | Table of Contents
+## 目录 | Table of Contents
 
-- [项目概述 | Project Overview](#-项目概述--project-overview)
-- [技术栈 | Tech Stack](#-技术栈--tech-stack)
-- [项目结构 | Project Structure](#-项目结构--project-structure)
-- [开发者入门指南 | Developer Onboarding Guide](#-开发者入门指南--developer-onboarding-guide)
+- [项目概述 | Project Overview](#项目概述--project-overview)
+- [技术栈 | Tech Stack](#技术栈--tech-stack)
+- [项目结构 | Project Structure](#项目结构--project-structure)
+- [开发者入门指南 | Developer Onboarding Guide](#开发者入门指南--developer-onboarding-guide)
   - [环境要求 | Prerequisites](#环境要求--prerequisites)
   - [初始设置 | Initial Setup](#初始设置--initial-setup)
   - [后端配置 | Backend Setup](#后端配置--backend-setup)
   - [前端配置 | Frontend Setup](#前端配置--frontend-setup)
   - [运行应用 | Running the Application](#运行应用--running-the-application)
   - [验证测试 | Verification](#验证测试--verification)
-- [开发模式说明 | Development Mode](#-开发模式说明--development-mode)
-- [项目文档 | Documentation](#-项目文档--documentation)
-- [系统架构 | System Architecture](#-系统架构--system-architecture)
-- [功能清单 | Features](#-功能清单--features)
-- [常见问题 | Troubleshooting](#-常见问题--troubleshooting)
-- [贡献指南 | Contributing](#-贡献指南--contributing)
+- [开发模式说明 | Development Mode](#开发模式说明--development-mode)
+- [项目文档 | Documentation](#项目文档--documentation)
+- [系统架构 | System Architecture](#系统架构--system-architecture)
+- [功能清单 | Features](#功能清单--features)
+- [常见问题 | Troubleshooting](#常见问题--troubleshooting)
+- [贡献指南 | Contributing](#贡献指南--contributing)
 
 ---
 
-## 🎯 项目概述 | Project Overview
+## 项目概述 | Project Overview
 
 HKUST Dorm Advisor 是一个智能宿舍推荐系统，使用 AI 技术为香港科技大学学生提供个性化的住宿建议。项目采用现代化的前后端分离架构，支持跨平台开发。
 
 An intelligent dormitory recommendation system that leverages AI technology to provide personalized accommodation suggestions for HKUST students. Built with modern frontend-backend separation architecture for cross-platform development.
 
 **核心功能 | Key Features:**
-- 🤖 AI 智能对话，解答宿舍相关问题
-- 📊 基于用户偏好的个性化推荐
-- 🔐 Supabase 安全认证
-- 📱 响应式设计，支持所有设备
-- 🚀 快速、可扩展的架构
+- AI 智能对话，解答宿舍相关问题
+- 基于用户偏好的个性化推荐
+- Supabase 安全认证
+- 响应式设计，支持所有设备
+- 快速、可扩展的架构
 
 ---
 
-## 🛠 技术栈 | Tech Stack
+## 技术栈 | Tech Stack
 
 ### 前端 | Frontend
 - **框架 Framework**: Next.js 14+ (App Router)
@@ -77,11 +77,11 @@ An intelligent dormitory recommendation system that leverages AI technology to p
 
 ---
 
-## 📁 项目结构 | Project Structure
+## 项目结构 | Project Structure
 
 ```
 hkust-dorm-advisor_202602/
-├── 📁 backend/                     # FastAPI 后端
+├── backend/                     # FastAPI 后端
 │   ├── app/
 │   │   ├── api/                    # API 路由
 │   │   │   ├── chat.py             # 聊天接口
@@ -102,7 +102,7 @@ hkust-dorm-advisor_202602/
 │   ├── .env.example                # 环境变量模板
 │   └── README.md
 │
-├── 📁 frontend/                    # Next.js 前端
+├── frontend/                    # Next.js 前端
 │   ├── app/                        # Next.js App Router
 │   │   ├── page.tsx                # 首页
 │   │   ├── layout.tsx              # 根布局
@@ -129,7 +129,7 @@ hkust-dorm-advisor_202602/
 │   ├── .env.local.example          # 环境变量模板
 │   └── README.md                   # 前端子專案專用說明（Frontend README）
 │
-├── 📁 docs/                        # 项目文档
+├── docs/                        # 项目文档
 │   ├── API.md                      # API 接口文档
 │   ├── DATABASE.md                 # 数据库设计
 │   ├── DEPLOYMENT.md               # 部署指南
@@ -148,7 +148,7 @@ hkust-dorm-advisor_202602/
 
 ---
 
-## 🚀 开发者入门指南 | Developer Onboarding Guide
+## 开发者入门指南 | Developer Onboarding Guide
 
 ### 环境要求 | Prerequisites
 
@@ -163,9 +163,9 @@ hkust-dorm-advisor_202602/
 | **Git** | 最新 Latest | `git --version` | [git-scm.com](https://git-scm.com/) |
 
 **必需账号与密钥 | Required Accounts & Keys:**
-- ✅ **阿里云百炼** API Key + 两个 Agent 应用 ID（对话 Agent + 推荐 Agent 各一个）
-- ✅ **DeepSeek** API Key（Extractor 模块使用）
-- ⚠️ **Supabase** 账号（可选，仅生产环境需要）
+- **阿里云百炼** API Key + 两个 Agent 应用 ID（对话 Agent + 推荐 Agent 各一个）
+- **DeepSeek** API Key（Extractor 模块使用）
+- **Supabase** 账号：生产环境必需；若 `DEV_MODE=false`，本地也需配置才能使用 profile / 推荐 / 聊天持久化等依赖数据库的接口
 
 ---
 
@@ -242,15 +242,17 @@ pip install -r requirements.txt
 pip list
 ```
 
-**应包含的主要包 | Expected Packages (matching current env):**
+**应包含的主要包 | Expected Packages (see `backend/requirements.txt`):**
 - fastapi==0.109.0
-- uvicorn==0.27.0
+- uvicorn[standard]==0.27.0
 - python-dotenv==1.0.0
 - pydantic==2.5.3
-- supabase==2.3.4
-- httpx==0.25.2
-- python-jose==3.3.0
-- passlib==1.7.4
+- supabase>=2.4.0
+- httpx==0.26
+- python-jose[cryptography]==3.3.0
+- pyjwt[crypto]>=2.8.0
+- passlib[bcrypt]==1.7.4
+- openai>=1.0.0
 
 #### 步骤 4: 配置环境变量 | Configure Environment
 
@@ -313,12 +315,10 @@ PORT=8000
 
 > **CRITICAL — `JWT_SECRET`**: This value must be **identical** to the **JWT Secret** shown in your Supabase project dashboard under `Settings → API → JWT Settings`. The backend uses this secret to verify tokens issued by Supabase Auth. If the two values differ, every authenticated endpoint will return `401 Unauthorized`.
 
-**⚠️ 重要提示 | Important:**
+**重要提示 | Important:**
 - `BAILIAN_API_KEY`、`BAILIAN_APP_ID_CHAT`、`BAILIAN_APP_ID_RECOMMEND` 是**必需**的（三个都要填）
 - `DEEPSEEK_API_KEY` 是**必需**的（Extractor 模块使用）
-- 开发模式 (`DEV_MODE=true`) 下，Supabase 和 JWT 配置可选
-- 切勿将 `.env` 文件提交到 Git（已在 `.gitignore` 中）
-- 开发模式 (`DEV_MODE=true`) 下，Supabase 和 JWT 配置可选
+- 开发模式 (`DEV_MODE=true`) 下可跳过登录（JWT 可选）；但若需写入/读取 `profiles`、`chat_logs`、`halls` 等，须 `DEV_MODE=false` 并配置 Supabase（见下方「开发模式说明」）
 - 切勿将 `.env` 文件提交到 Git（已在 `.gitignore` 中）
 
 #### 步骤 5: 启动后端 | Start Backend
@@ -341,7 +341,8 @@ INFO:     Application startup complete.
 **验证后端运行 | Verify Backend:**
 - API 文档 Docs: http://localhost:8000/api/docs (Swagger UI)
 - 备用文档 Alternative: http://localhost:8000/api/redoc (ReDoc)
-- 健康检查 Health: http://localhost:8000/ (应返回 JSON)
+- 根路径 Health: http://localhost:8000/ （返回 `status`、`service`、`version` 的 JSON）
+- 可选：http://localhost:8000/api/health
 
 **保持此终端窗口运行 | Keep This Terminal Running**
 
@@ -372,7 +373,7 @@ npm install
 # yarn install
 ```
 
-**📦 npm install 工作原理 | How npm install Works:**
+**npm install 工作原理 | How npm install Works:**
 
 `npm install` 会自动读取 `package.json` 文件，并安装所有列出的依赖包及其子依赖。
 
@@ -397,7 +398,7 @@ node_modules/ (下载并安装数百个包)
 - Axios, Lucide React
 - react-markdown, remark-gfm（聊天 Markdown 与表格渲染）
 
-**📝 说明 | Note:**
+**说明 | Note:**
 - **`package.json`**: 定义项目直接需要的 7 个依赖
 - **`package-lock.json`**: 自动生成，记录所有依赖（含间接依赖）的完整版本信息
 - **`node_modules/`**: 实际安装的所有包（数百个文件夹）
@@ -444,7 +445,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 # NEXT_PUBLIC_GA_ID=your-google-analytics-id
 ```
 
-**⚠️ 重要提示 | Important:**
+**重要提示 | Important:**
 - `NEXT_PUBLIC_API_URL` 必须与后端 URL 匹配
 - `NEXT_PUBLIC_DEV_MODE=true` 允许无需登录测试
 - 所有 `NEXT_PUBLIC_*` 变量会暴露到浏览器
@@ -515,11 +516,11 @@ npm run dev
 #### 后端健康检查 | Backend Health Check
 
 ```bash
-# 测试健康端点
+# 测试根路径（健康检查）
 curl http://localhost:8000/
 
-# 预期响应:
-# {"message": "HKUST Dorm Advisor Backend API"}
+# 预期响应示例（字段以实际部署为准）:
+# {"status":"healthy","service":"HKUST Dorm Advisor API","version":"2.0.0"}
 ```
 
 #### 前端构建测试 | Frontend Build Test
@@ -538,31 +539,33 @@ npm run build
 
 **预期端点 | Expected Endpoints:**
 - `POST /api/chat/stream` - 发送聊天消息（SSE 流式）
-- `GET /api/chat/history` - 获取聊天历史
-- `POST /api/recommend/` - 生成推荐
-- `GET /api/recommend/refresh` - 刷新推荐
+- `POST /api/chat/` - 非流式聊天（与 `/stream` 使用相同多轮历史与上下文逻辑）
+- `GET /api/chat/history` - 获取聊天历史（默认 `limit=50`，可按查询参数调整）
+- `POST /api/recommend/` - 生成推荐（无请求体，从 `profiles` 读取偏好）
+- `GET /api/recommend/refresh` - 与 `POST /api/recommend/` 等价，重新生成推荐
 - `GET /api/profile/` - 获取当前用户画像
-- `POST /api/profile/` - 更新用户画像（form_preferences）
+- `POST /api/profile/` - 更新用户画像（`form_preferences`）
 
 ---
 
-## 💡 开发模式说明 | Development Mode
+## 开发模式说明 | Development Mode
 
 ### 什么是开发模式？ | What is Development Mode?
 
-开发模式 (`DEV_MODE=true`) **跳过身份认证**，让您专注于测试核心功能，无需配置 Supabase。
+后端设置 `DEV_MODE=true` 时，**跳过身份认证**（无 Authorization 时使用固定测试用户 `test-user-123`）。  
+实现上，`backend/app/database/supabase_client.py` 在 `DEV_MODE` 下会让 `get_supabase()` 返回 `None`，因此聊天流程**不会**向 `chat_logs` / `profiles` 写入数据库。
 
 **开发模式特性 | Features:**
-- ✅ 无需登录 | No login required
-- ✅ 直接访问 `/chat` 界面 | Direct access to chat
-- ✅ 使用测试用户 ID (`test-user-123`)
-- ✅ AI 聊天立即可用 | AI chat works immediately
-- ✅ 简化的入门流程 | Simplified onboarding
+- 无需登录 | No login required
+- 可直接访问 `/chat` 做对话联调
+- 使用测试用户 ID (`test-user-123`)
+- Bailian 聊天在有无数据库时均可尝试（无 Supabase 时仅跳过落库）
 
 **限制 | Limitations:**
-- ❌ 无用户持久化（刷新会丢失数据）| No user persistence
-- ❌ 不支持多用户 | No multi-user support
-- ❌ 聊天历史不保存到数据库 | Chat history not saved
+- 无 Supabase 时：无用户画像持久化、无聊天历史落库、**`/api/profile/`、`/api/recommend/` 等依赖 Supabase 的接口当前无法正常工作**（客户端为 `None`）
+- 仅适合单机、单测试用户场景；需要完整流程时请设置 `DEV_MODE=false` 并配置 Supabase
+
+**说明：** 聊天历史「不保存」指上述开发模式下不写库；生产或 `DEV_MODE=false` 且配置 Supabase 时，对话会写入 `chat_logs`。
 
 ### 切换到生产模式 | Switch to Production Mode
 
@@ -581,7 +584,7 @@ npm run build
 
 ---
 
-## 📚 项目文档 | Documentation
+## 项目文档 | Documentation
 
 | 文档 Document | 描述 Description |
 |--------------|-----------------|
@@ -594,7 +597,7 @@ npm run build
 
 ---
 
-## 🏗 系统架构 | System Architecture
+## 系统架构 | System Architecture
 
 ```
 ┌─────────────────┐         ┌──────────────────────────────────┐
@@ -621,33 +624,34 @@ npm run build
 ### 请求流程 | Request Flow
 
 1. **用户登录 | User Login**: 前端 → Supabase Auth → JWT Token → 前端；登录成功后前端调用 `getProfile()`，若已有 form 偏好则跳转 `/chat` 并载入历史与推荐，否则跳转 `/setup`。
-2. **聊天消息 | Chat (SSE)**: 前端 → `POST /api/chat/stream` → 后端从 `chat_logs` 取最近 10 条作为多轮历史 → 与当前用户问题一并送 Bailian Chat Agent → SSE 流式返回 → 前端用 react-markdown 渲染（表格、粗体等）；用户消息与 AI 回复写入 `chat_logs`
-3. **Extractor（后台）**: 每 20 条用户消息后自动触发 → DeepSeek API 分析对话 → 更新 `profiles.inferred_preferences`
-4. **生成推荐 | Recommendations**: `POST /api/recommend/` → 读取 `form_preferences` + `inferred_preferences` → Bailian Recommend Agent → 查 `halls` 表补全信息 → 写入 `profiles.last_recommendation` → 返回前端。**Refresh 推荐**：推荐面板标题旁 Refresh 按钮触发 saveProfile + generateRecommendations，不清空列表、保留表单。
-5. **保存偏好 | Save Prefs**: 前端 SetupForm → `POST /api/profile/` → 更新 `profiles.form_preferences`（UPDATE only，行由 DB Trigger 创建）
+2. **聊天消息 | Chat (SSE)**: 前端 → `POST /api/chat/stream` → 若有 Supabase，从 `chat_logs` 读取最近最多 **10 条**消息参与拼接；当前用户消息中会附带 **压缩后的最近 3 轮**对话摘要（用于控制 token，见 `chat.py` 中 `_format_recent_history_for_prompt`）→ 发往 Bailian Chat Agent → SSE 流式返回 → 前端用 react-markdown 渲染；若有 Supabase，用户消息与助手回复在流结束后写入 `chat_logs`。
+3. **Extractor（后台）**: 每次助手回复写入后，统计该用户 **assistant** 消息条数；当条数为 **3、6、9…**（每完成约 3 轮对话）时异步触发 DeepSeek → 根据最近 **6 条** `chat_logs` 构造上下文 → 更新 `profiles.inferred_preferences`（见 `extractor_service.py`）。
+4. **长期记忆 memory_id**: 仅当 `profiles.memory_id` **已存在**时传给 Bailian；后端**不再**在此处新建 memory（避免相关 API 报错）。
+5. **生成推荐 | Recommendations**: `POST /api/recommend/`（或 `GET /api/recommend/refresh`）→ 读取 `form_preferences`、`inferred_preferences` → Bailian Recommend Agent 产出 JSON → 查 `halls` 补全静态字段（含 `price_info` 等）→ 写入 `profiles.last_recommendation` → 返回前端。推荐面板 Refresh：前端可先保存表单再拉取推荐，列表与表单行为见前端实现。
+6. **保存偏好 | Save Prefs**: 前端 SetupForm → `POST /api/profile/` → 更新 `profiles.form_preferences`（仅 UPDATE；行由 Supabase 侧 Trigger 在注册时创建）。
 
 ---
 
-## ✨ 功能清单 | Features
+## 功能清单 | Features
 
-### ✅ 已实现 | Implemented
+### 已实现 | Implemented
 
 - [x] 用户认证（Supabase Auth）| User Authentication
 - [x] 登录后根据是否已有偏好跳转（有则进聊天，无则进设置）| Login profile check: skip setup when profile exists
 - [x] 用户偏好设置（form_preferences）| User Preferences via SetupForm
 - [x] 推荐面板 Refresh 按钮（保留表单、不清空列表重新拉推荐）| Refresh recommendations button (keeps form, no clear list)
 - [x] AI 流式聊天（SSE StreamingResponse）| Streaming AI Chat
-- [x] 多轮对话（最近 10 条历史送 Bailian）| Multi-turn Chat with History
+- [x] 多轮对话（最多 10 条 `chat_logs` 参与请求；提示内嵌最近 3 轮压缩摘要）| Multi-turn Chat with History
 - [x] 聊天回复 Markdown 渲染（表格、粗体、列表）| Markdown Rendering in Chat
-- [x] Bailian 长期记忆（memory_id 懒初始化）| Long-term Memory
-- [x] Extractor 模块（DeepSeek 隐性偏好分析）| Hidden Preference Extraction
+- [x] Bailian `memory_id`（仅使用已有值，不自动创建）| Optional long-term memory id passthrough
+- [x] Extractor 模块（DeepSeek；约每 3 轮助手回复触发）| Hidden Preference Extraction
 - [x] 宿舍推荐（双 Agent 架构）| Dormitory Recommendations
 - [x] 推荐结果持久化（profiles.last_recommendation）| Persistent Recommendations
 - [x] 设施详情查看 | Facility Details
 - [x] 响应式设计（手机/桌面）| Responsive Design
-- [x] 开发模式便捷测试 | Development Mode
+- [x] 开发模式便捷测试（无 Supabase 时不落库）| Development Mode
 
-### 🚧 规划中 | Planned
+### 规划中 | Planned
 
 - [ ] RAG 知识库检索 | RAG Knowledge Base
 - [ ] 多会话聊天历史 | Multi-session History（当前已支持单用户多轮对话与历史持久化）
@@ -657,7 +661,7 @@ npm run build
 
 ---
 
-## 🔧 常见问题 | Troubleshooting
+## 常见问题 | Troubleshooting
 
 ### 后端问题 | Backend Issues
 
@@ -728,8 +732,13 @@ npm run build
 # 确保从示例文件复制
 cp .env.example .env  # Mac/Linux
 copy .env.example .env  # Windows
+```
 
-   ```
+---
+
+## 贡献指南 | Contributing
+
+1. **Fork 本仓库 | Fork the Repository**
 
 2. **克隆你的 Fork | Clone Your Fork**
    ```bash
@@ -786,13 +795,13 @@ chore: 更新依赖 | update dependencies
 
 ---
 
-## 📄 许可证 | License
+## 许可证 | License
 
 MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-## 📧 联系方式 | Contact
+## 联系方式 | Contact
 
 - **项目仓库 | Repository**: [GitHub](https://github.com/Timthn/HKUST_DormAdvisor_v20260202)
 - **问题追踪 | Issue Tracker**: [GitHub Issues](https://github.com/Timthn/HKUST_DormAdvisor_v20260202/issues)
@@ -802,9 +811,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 <div align="center">
 
-**用心打造，为科大学生服务 ❤️**  
-**Made with ❤️ for HKUST Students**
-
-**Happy Coding! 🚀**
+**用心打造，为科大学生服务**  
+**Made for HKUST Students**
 
 </div>
