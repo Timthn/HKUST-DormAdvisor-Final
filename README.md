@@ -4,6 +4,7 @@
 
 **RAG驱动的香港科技大学宿舍推荐系统**  
 **RAG -Powered HKUST Dormitory Recommendation System (HKUST Dorm Advisor)**
+project video: https://drive.google.com/file/d/12037A0g0e5WIhhhHSGvkdOWgM47oppGf/view?usp=sharing
 
 *基于 Alibaba Cloud Bailian + Next.js + FastAPI + Supabase 构建*
 
