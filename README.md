@@ -4,7 +4,8 @@
 
 **RAG驱动的香港科技大学宿舍推荐系统**  
 **RAG -Powered HKUST Dormitory Recommendation System (HKUST Dorm Advisor)**
-project video: https://drive.google.com/file/d/12037A0g0e5WIhhhHSGvkdOWgM47oppGf/view?usp=sharing
+
+**project video: https://drive.google.com/file/d/12037A0g0e5WIhhhHSGvkdOWgM47oppGf/view?usp=sharing**
 
 *基于 Alibaba Cloud Bailian + Next.js + FastAPI + Supabase 构建*
 
@@ -651,13 +652,13 @@ npm run build
 - [x] 设施详情查看 | Facility Details
 - [x] 响应式设计（手机/桌面）| Responsive Design
 - [x] 开发模式便捷测试（无 Supabase 时不落库）| Development Mode
+- [x] 云端聊天记录同步 | Cloud Chat Sync
 
 ### 规划中 | Planned
 
 - [ ] 自建RAG 知识库检索 |Self developed  RAG Knowledge Base and pipeline
 - [ ] 多会话聊天历史 | Multi-session History（当前已支持单用户多轮对话与历史持久化）
 - [ ] 高级用户画像 | Advanced Profiling
-- [ ] 云端聊天记录同步 | Cloud Chat Sync
 - [ ] 多语言支持（英文/中文） UI | Multi-language Support UI
 
 ---
